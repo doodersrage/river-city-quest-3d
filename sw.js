@@ -1,5 +1,5 @@
 // Offline cache. Bump VERSION when files change.
-const VERSION='rcq3d-v3';
+const VERSION='rcq3d-v4';
 const FILES=['./','index.html','js/data.js','js/mesh.js','js/tex.js','js/level.js','js/models.js','js/audio.js','js/game.js','js/render.js','js/hud.js','js/input.js','js/main.js','manifest.webmanifest','icon-192.png','icon-512.png','icon-180.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(FILES)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))));self.clients.claim();});

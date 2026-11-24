@@ -14,7 +14,8 @@ function toast(m){toastMsg=m;toastT=170;}
 function tileXZ(x,z){return[Math.floor(x/TS),Math.floor(z/TS)];}
 function tAt(x,z){const [tx,tz]=tileXZ(x,z);return tileAt(lv,tx,tz);}
 function solidAt(x,z){const c=tAt(x,z);return c!=null&&!walkable(c);}
-function blockedCircle(x,z,r){for(const [dx,dz] of [[-r,-r],[r,-r],[-r,r],[r,r],[0,-r],[0,r],[-r,0],[r,0]]){const c=tAt(x+dx,z+dz);if(c!=null&&!walkable(c))return c;}return null;}
+function blockedCircle(x,z,r){for(const [dx,dz] of [[-r,-r],[r,-r],[-r,r],[r,r],[0,-r],[0,r],[-r,0],[r,0]]){const c=tAt(x+dx,z+dz);if(c!=null&&!walkable(c))return c;}
+  for(const pr of lv.props||[])if(pr.solid&&Math.abs(x-pr.x)<pr.solid[0]+r&&Math.abs(z-pr.z)<pr.solid[1]+r)return'car';return null;}
 function npcBlock(x,z){for(const n of npcs)if(Math.hypot(n.x-x,n.z-z)<.85)return n;return null;}
 
 /* ---------- loading a place ---------- */

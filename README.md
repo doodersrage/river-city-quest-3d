@@ -11,11 +11,13 @@ This first build is a playable slice: four neighborhoods, the quarry dungeon and
 | ![Title](screenshots/title.png) | ![Shockoe Bottom](screenshots/shockoe.png) |
 | ![Church Hill](screenshots/church-hill.png) | ![Church Hill at night](screenshots/night.png) |
 | ![Old Snapper](screenshots/old-snapper.png) | ![The map](screenshots/map.png) |
+| ![A Shockoe street](screenshots/shockoe-street.png) | ![Shockoe Bottom](screenshots/shockoe.png) |
 | ![The reenactor and Rory](screenshots/people.png) | ![Rats, geese, crabs and bats](screenshots/creatures.png) |
 
 ## What's in it
 
 - **Four neighborhoods in 3D:** Capitol Square, Shockoe Bottom, Church Hill and Belle Isle, built tile for tile from the 2D game's maps. Brick rows become buildings, trees and rocks stand up, the James runs between them, and you walk from one neighborhood into the next.
+- **Detailed streets:** brick buildings with window sills and lintels, cornices with brackets, chimneys, striped shop awnings, rowhouse doors with stoops and cast-iron balconies, plus fire hydrants, trash cans, newspaper boxes, mailboxes, street signs and parked cars.
 - **Landmarks:** the Capitol's portico, the old bell tower, Main Street Station's clock tower, the 17th Street Market shed, St. John's Church and the power plant ruins on Belle Isle.
 - **The Belle Isle Quarry:** four rooms with a small key, a locked door, blasting powder, a cracked wall and Old Snapper, a giant turtle you have to trick into charging a wall.
 - **A third-person camera** that trails behind you like late-90s 3D adventures. Swing it with a drag, the right stick or Q and E. In the quarry it holds a fixed angle over each room.

@@ -52,6 +52,10 @@ function makeAtlas(){
     face(x,y){R(x,y,P,P,'#e8b890');R(x+7,y+12,5,6,'#1a1423');R(x+20,y+12,5,6,'#1a1423');R(x+8,y+13,2,2,'#ffffff');R(x+21,y+13,2,2,'#ffffff');R(x+12,y+23,8,2,'#a85a48');R(x+5,y+19,4,2,'#f0a088');R(x+23,y+19,4,2,'#f0a088');},
     eyes(x,y){g.clearRect(x,y,P,P);R(x+5,y+7,8,2,'#3a2414');R(x+19,y+7,8,2,'#3a2414');R(x+6,y+11,7,9,'#ffffff');R(x+19,y+11,7,9,'#ffffff');R(x+8,y+12,5,8,'#2a1a14');R(x+19,y+12,5,8,'#2a1a14');
       R(x+9,y+13,2,2,'#ffffff');R(x+20,y+13,2,2,'#ffffff');R(x+12,y+26,8,1,'#b0605a');R(x+11,y+25,1,1,'#b0605a');R(x+20,y+25,1,1,'#b0605a');},
+    awning(x,y){for(let i=0;i<P;i+=8){R(x+i,y,4,P,'#d83040');R(x+i+4,y,4,P,'#f4f0e8');}R(x,y+P-3,P,3,'#8a1424');},
+    awning2(x,y){for(let i=0;i<P;i+=8){R(x+i,y,4,P,'#2e7d4f');R(x+i+4,y,4,P,'#f4f0e8');}R(x,y+P-3,P,3,'#1c4a2e');},
+    sign2(x,y){R(x,y,P,P,'#1e6a3a');R(x+1,y+1,30,30,'#2e8a4e');R(x+3,y+12,26,8,'#2e8a4e');for(let i=0;i<5;i++)R(x+5+i*5,y+13,3,6,'#f4f4f0');R(x+1,y+1,30,1,'#f4f4f0');R(x+1,y+30,30,1,'#f4f4f0');},
+    grille(x,y){R(x,y,P,P,'#2a2a30');for(let i=2;i<P;i+=4)R(x+i,y+4,2,24,'#8a8a94');R(x,y+2,P,2,'#c8c8d0');R(x,y+28,P,2,'#c8c8d0');R(x+2,y+12,6,6,'#fff2a8');R(x+24,y+12,6,6,'#fff2a8');},
     hair(x,y){R(x,y,P,P,'#ffffff');noise(x,y,['#dddddd','#c8c8c8'],80);},
     shell(x,y){R(x,y,P,P,'#3a6a34');for(let i=0;i<2;i++)for(let j=0;j<2;j++){R(x+i*16+2,y+j*16+2,12,12,'#5a8a44');R(x+i*16+4,y+j*16+4,8,8,'#6e9e52');}},
     lock(x,y){D.wood(x,y);R(x+10,y+10,12,12,'#d8a830');R(x+14,y+14,4,5,'#1a1423');R(x+12,y+5,8,6,'#9a9aa4');R(x+14,y+7,4,4,'#5e3a1e');},
