@@ -12,7 +12,7 @@ const pick=s=>({id:s.id,name:s.name,area:s.area,ax:s.ax,ay:s.ay,w:s.w,h:s.h,base
   npcs:(s.npcs||[]).map(n=>({who:n.who,tx:n.tx,ty:n.ty,talk:n.talk,lines:n.lines||null,chal:n.chal||null,hat:n.hat,shirt:n.shirt})),
   reads:s.reads,doors:(s.doors||[]).map(d=>({tx:d.tx,ty:d.ty,to:d.to,need:d.need||null})),chests:(s.chests||[]).map(c=>({id:c.id,tx:c.tx,ty:c.ty,item:c.item,appear:!!c.appear})),
   en:s.en,lamps:s.lamps||[],lm:(s.lm||[]).map(L=>({art:L.art,x:L.x,y:L.y,w:L.w,h:L.h})),items:(s.items||[]).map(i=>({id:i.id,kind:i.kind,tx:i.tx,ty:i.ty})),
-  opens:s.opens||[],spots:s.spots||[],dyn:(s.dyn||[]).map(d=>({cells:d.cells,closed:d.closed,open:d.open})),bossT:s.bossT||null,reward:s.reward||null,solve:s.solve||null,interior:!!s.interior});
+  opens:s.opens||[],spots:s.spots||[],birds:s.birds||[],dyn:(s.dyn||[]).map(d=>({cells:d.cells,closed:d.closed,open:d.open})),bossT:s.bossT||null,reward:s.reward||null,solve:s.solve||null,interior:!!s.interior});
 for(const id of SLICE){out.maps[id]=pick(sb.SC[id]);Object.values(sb.SC[id].reads).forEach(r=>used.add(r));}
 for(const id of ROOMS){out.rooms[id]=pick(sb.SC[id]);Object.values(sb.SC[id].reads).forEach(r=>used.add(r));}
 for(const [id,t,s] of sb.LORE)if(used.has(id))out.lore[id]={t,s};

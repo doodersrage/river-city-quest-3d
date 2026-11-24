@@ -14,7 +14,7 @@ function boot(){initHud(document.getElementById('hud'));initTouch();fit();addEve
   titleScene();requestAnimationFrame(t=>{last=t;frameLoop(t);});
   if('serviceWorker' in navigator&&location.protocol=='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});}
 window.__g={get st(){return st},get p(){return p},get lv(){return lv},get cam(){return cam},get mode(){return mode},set mode(v){mode=v},get dlg(){return dlg},set dlg(v){dlg=v},get menu(){return menu},set menu(v){menu=v},
-  get npcs(){return npcs},get enemies(){return enemies},get picks(){return picks},get chests(){return chests},get bombs(){return bombs},get trans(){return trans},get chal(){return chal},get boss(){return boss},get toastMsg(){return toastMsg},
+  get npcs(){return npcs},get birds(){return birds},get enemies(){return enemies},get picks(){return picks},get chests(){return chests},get bombs(){return bombs},get trans(){return trans},get chal(){return chal},get boss(){return boss},get toastMsg(){return toastMsg},
   get deathT(){return deathT},inp,update,startGame,loadScene,newState,saveGame,loadSave,give,say,RCQ,buildLevel,buildMesh,tileAt,walkable,EDEF,hitEnemy,explode,dark,hour,goalScene,goalText,TS,CYC,
   get frame(){return frame},render,set titleSel(v){titleSel=v}};
 if(typeof document!='undefined'&&document.getElementById&&document.getElementById('gl'))addEventListener('load',boot);

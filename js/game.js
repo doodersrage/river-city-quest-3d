@@ -2,7 +2,7 @@
 /* River City Quest 3D: the game itself, with no drawing in it, so tests can play it headless. */
 const CYC=36000,FPS=60,PR=.42;
 let st=null,lv=null,p=null,cam=null,mode='title',dlg=null,menu=null,trans=null,toastMsg='',toastT=0,banner='',bannerT=0,frame=0,shake=0,flash=0,endT=0;
-let npcs=[],enemies=[],picks=[],bombs=[],parts=[],chests=[],chal=null,boss=null,needSave=false,titleSel=0,deathT=0;
+let birds=[],npcs=[],enemies=[],picks=[],bombs=[],parts=[],chests=[],chal=null,boss=null,needSave=false,titleSel=0,deathT=0;
 const inp={x:0,z:0,a:0,b:0,item:0,menu:0,camX:0,up:0,down:0,left:0,right:0,start:0};
 function newState(){return{coins:0,hp:6,max:6,items:{},ammo:{powder:0},eq:null,keys:{},got:{},f:{},lore:{},pins:{},vis:{},scene:'ow:2,1',x:15*TS+TS/2,z:9*TS+TS/2,clock:2400,time:0,ret:null};}
 function newPlayer(){return{x:0,z:0,y:0,yaw:Math.PI,vx:0,vz:0,swing:0,inv:0,kx:0,kz:0,walk:0,hold:0,holdIc:null,moving:false};}
@@ -26,6 +26,7 @@ function loadScene(id,x,z,yaw){
   st.spawn=[id,x,z];
   npcs=(lv.d.npcs||[]).map((n,i)=>({...n,x:n.tx*TS+TS/2,z:n.ty*TS+TS/2,hx:n.tx*TS+TS/2,hz:n.ty*TS+TS/2,yaw:0,t:hash(i,n.tx,n.ty)%200,walk:0,i,wander:n.talk=='folk'}));
   enemies=[];picks=[];bombs=[];parts=[];boss=null;
+  birds=[];if(!lv.room)(lv.d.birds||[]).forEach(([bx,by],i)=>{for(let k=0;k<3+i%2;k++){const hx=bx*TS+TS/2+(k-1)*.6,hz=by*TS+TS/2+((k*7)%3-1)*.5;birds.push({hx,hz,x:hx,z:hz,y:0,yaw:k*2.1,t:k*37,state:'peck',vx:0,vy:0,vz:0,flap:0});}});
   const cleared=st.f['clr:'+id];
   if(!cleared||!lv.room)for(const [t,x0,y0] of lv.d.en){if(t=='turtle'&&st.f['boss:'+id])continue;const e=mkEnemy(t,x0*TS+TS/2,y0*TS+TS/2);enemies.push(e);if(t=='turtle')boss=e;}
   if(!lv.room&&dark()>.6)for(let i=0;i<2;i++){const s=freeSpot(16);if(s){const e=mkEnemy('ghost',s[0],s[1]);e.night=1;enemies.push(e);}}
@@ -72,7 +73,7 @@ function update(){frame++;
   if(inp.menu||inp.start){menu={tab:0,sel:0,jc:0,rd:null};sfx('blip');return;}
   st.clock++;st.time++;if(p.inv>0)p.inv--;if(p.hold>0)p.hold--;
   if(chal&&chal.t!=null&&--chal.t<=0)chalFail();
-  playerUpdate();enemiesUpdate();npcUpdate();picksUpdate();bombsUpdate();partsUpdate();camUpdate();
+  playerUpdate();enemiesUpdate();npcUpdate();birdsUpdate();picksUpdate();bombsUpdate();partsUpdate();camUpdate();
   if(needSave&&frame%30==0){saveGame();needSave=false;}}
 
 function playerUpdate(){
@@ -223,6 +224,12 @@ function collect(k){switch(k.kind){
 function burst(x,y,z,n,c){for(let i=0;i<n;i++){const a=Math.random()*6.283,v=.05+Math.random()*.12;parts.push({x,y,z,vx:Math.cos(a)*v,vy:.05+Math.random()*.15,vz:Math.sin(a)*v,life:30+Math.random()*20|0,c});}}
 function partsUpdate(){for(const q of parts){q.x+=q.vx;q.y+=q.vy;q.z+=q.vz;q.vy-=.008;q.life--;}parts=parts.filter(q=>q.life>0);}
 
+/* ---------- pigeons: they peck about and scatter when you come close ---------- */
+function birdsUpdate(){for(const b of birds){b.t++;
+  if(b.state=='peck'){if(b.t%90==0){b.yaw+=(Math.random()-.5)*2;}if(b.t%140==70){const nx=b.x+Math.sin(b.yaw)*.4,nz=b.z+Math.cos(b.yaw)*.4;if(Math.hypot(nx-b.hx,nz-b.hz)<1.6&&!blockedCircle(nx,nz,.15)){b.x=nx;b.z=nz;}}
+    if(Math.hypot(p.x-b.x,p.z-b.z)<3.4||p.swing>0&&Math.hypot(p.x-b.x,p.z-b.z)<5){b.state='fly';const a=Math.atan2(b.x-p.x,b.z-p.z)+(Math.random()-.5)*.8;b.vx=Math.sin(a)*.12;b.vz=Math.cos(a)*.12;b.vy=.09+Math.random()*.04;b.yaw=a;if(!birds.some(q=>q.state=='fly'&&q!==b&&q.t<5))sfx('flap');b.t=0;}}
+  else if(b.state=='fly'){b.x+=b.vx;b.z+=b.vz;b.y+=b.vy;b.vy=Math.min(.16,b.vy+.001);b.flap+=.6;if(b.y>16){b.state='gone';b.t=0;}}
+  else if(b.state=='gone'&&b.t>900&&Math.hypot(p.x-b.hx,p.z-b.hz)>10){b.state='peck';b.x=b.hx;b.z=b.hz;b.y=0;b.t=0;}}}
 /* ---------- townspeople ---------- */
 function npcUpdate(){for(const n of npcs){n.t++;if(n.look>0){n.look--;continue;}
   if(n.wander){const tx=n.hx+Math.sin(n.t*.006+n.i)*2.2,tz=n.hz+Math.cos(n.t*.0045+n.i*2)*1.6,dx=tx-n.x,dz=tz-n.z,l=Math.hypot(dx,dz);

@@ -56,6 +56,10 @@ function makeAtlas(){
     awning2(x,y){for(let i=0;i<P;i+=8){R(x+i,y,4,P,'#2e7d4f');R(x+i+4,y,4,P,'#f4f0e8');}R(x,y+P-3,P,3,'#1c4a2e');},
     sign2(x,y){R(x,y,P,P,'#1e6a3a');R(x+1,y+1,30,30,'#2e8a4e');R(x+3,y+12,26,8,'#2e8a4e');for(let i=0;i<5;i++)R(x+5+i*5,y+13,3,6,'#f4f4f0');R(x+1,y+1,30,1,'#f4f4f0');R(x+1,y+30,30,1,'#f4f4f0');},
     grille(x,y){R(x,y,P,P,'#2a2a30');for(let i=2;i<P;i+=4)R(x+i,y+4,2,24,'#8a8a94');R(x,y+2,P,2,'#c8c8d0');R(x,y+28,P,2,'#c8c8d0');R(x+2,y+12,6,6,'#fff2a8');R(x+24,y+12,6,6,'#fff2a8');},
+    tuft(x,y){g.clearRect(x,y,P,P);for(let i=0;i<14;i++){const bx=2+(rnd()*28|0),h=10+(rnd()*20|0),c=['#5e9a44','#4f8a3a','#7ab858','#3f7a30'][i%4];for(let k=0;k<h;k++)R(x+bx+Math.round((k/h)*(i%3-1)*3),y+P-1-k,2,1,c);}},
+    bloom(x,y){D.tuft(x,y);for(let i=0;i<6;i++){const c=['#f0e060','#ffffff','#e86890','#c890f0','#f08a30'][(rnd()*5)|0],bx=3+(rnd()*24|0),by=3+(rnd()*14|0);R(x+bx-1,y+by,4,2,c);R(x+bx,y+by-1,2,4,c);R(x+bx,y+by,2,2,'#f8e070');}},
+    worn(x,y){g.clearRect(x,y,P,P);for(let i=0;i<260;i++){const a=rnd()*6.283,r=Math.sqrt(rnd())*14;if(rnd()<.85)R(x+16+Math.cos(a)*r|0,y+16+Math.sin(a)*r|0,2,1,['#8a6a44','#7a5a3a','#9a7a54','#6a4a2e'][(rnd()*4)|0]);}},
+    pigeon(x,y){R(x,y,P,P,'#8a8a96');noise(x,y,['#9a9aa6','#7a7a86','#6a6a76'],80);R(x,y+18,P,6,'#5a8a7a');},
     hair(x,y){R(x,y,P,P,'#ffffff');noise(x,y,['#dddddd','#c8c8c8'],80);},
     shell(x,y){R(x,y,P,P,'#3a6a34');for(let i=0;i<2;i++)for(let j=0;j<2;j++){R(x+i*16+2,y+j*16+2,12,12,'#5a8a44');R(x+i*16+4,y+j*16+4,8,8,'#6e9e52');}},
     lock(x,y){D.wood(x,y);R(x+10,y+10,12,12,'#d8a830');R(x+14,y+14,4,5,'#1a1423');R(x+12,y+5,8,6,'#9a9aa4');R(x+14,y+7,4,4,'#5e3a1e');},
@@ -67,7 +71,7 @@ function makeAtlas(){
     sky(x,y){R(x,y,P,P,'#ffffff');},
     water(x,y){R(x,y,P,P,'#2a5a7a');},foam(x,y){R(x,y,P,P,'#e8f4f8');}
   };
-  CELLS.forEach((n,i)=>{const x=(i%ATLAS_N)*P,y=((i/ATLAS_N)|0)*P;if(D[n])D[n](x,y);else R(x,y,P,P,'#ff00ff');});
+  CELLS.forEach((n,i)=>{const x=(i%ATLAS_N)*P,y=((i/ATLAS_N)|0)*P;g.save();g.beginPath();g.rect(x,y,P,P);g.clip();if(D[n])D[n](x,y);else R(x,y,P,P,'#ff00ff');g.restore();});
   return cv;}
 function makeWaterTex(){const P=64,cv=document.createElement('canvas');cv.width=cv.height=P;const g=cv.getContext('2d');let seed=7;const rnd=()=>((seed=(seed*16807)%2147483647)/2147483647);
   g.fillStyle='#2e6488';g.fillRect(0,0,P,P);for(let i=0;i<260;i++){g.fillStyle=['#3a76a0','#245478','#4a88b0','#1e4a6a'][i%4];g.fillRect(rnd()*P|0,rnd()*P|0,3+(rnd()*5|0),1);}

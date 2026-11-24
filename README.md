@@ -17,7 +17,8 @@ This first build is a playable slice: four neighborhoods, the quarry dungeon and
 ## What's in it
 
 - **Four neighborhoods in 3D:** Capitol Square, Shockoe Bottom, Church Hill and Belle Isle, built tile for tile from the 2D game's maps. Brick rows become buildings, trees and rocks stand up, the James runs between them, and you walk from one neighborhood into the next.
-- **Detailed streets:** brick buildings with window sills and lintels, cornices with brackets, chimneys, striped shop awnings, rowhouse doors with stoops and cast-iron balconies, plus fire hydrants, trash cans, newspaper boxes, mailboxes, street signs and parked cars.
+- **Detailed streets:** brick buildings with window sills and lintels, cornices with brackets, chimneys, striped shop awnings, rowhouse doors with stoops and cast-iron balconies, plus fire hydrants, trash cans, newspaper boxes, mailboxes, street signs and parked cars. Sidewalks have curbs and gutters, grass has tufts and worn patches, and flower beds bloom.
+- **A living river and town:** rocks break the surface of the James with foam around them and along the banks, the water rolls, and at night the moon and the gas lamps shimmer on it. Trees sway, people shift their weight and nod while they talk, and pigeons scatter when you walk up.
 - **Landmarks:** the Capitol's portico, the old bell tower, Main Street Station's clock tower, the 17th Street Market shed, St. John's Church and the power plant ruins on Belle Isle.
 - **The Belle Isle Quarry:** four rooms with a small key, a locked door, blasting powder, a cracked wall and Old Snapper, a giant turtle you have to trick into charging a wall.
 - **A third-person camera** that trails behind you like late-90s 3D adventures. Swing it with a drag, the right stick or Q and E. In the quarry it holds a fixed angle over each room.

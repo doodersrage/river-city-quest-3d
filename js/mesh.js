@@ -5,15 +5,15 @@
 const TS=2;
 const CELLS=['grass','grass2','flowers','dirt','sand','cobble','sidewalk','steps','rails','planks','brick','brickwin','brickwin2','storefront','roof','stone',
   'stonewall','marble','column','white','door','doorlit','bark','leaves','leaves2','rock','fence','floor','qwall','rubble','sign','gold','glass','wood','black','clock',
-  'copper','chest','face','eyes','awning','awning2','sign2','grille','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
+  'copper','chest','face','eyes','awning','awning2','sign2','grille','tuft','bloom','worn','pigeon','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
 const CELL={};CELLS.forEach((n,i)=>CELL[n]=i);
 const ATLAS_N=16,ATLAS_PX=32;
 function cellUV(name){const i=CELL[name]==null?CELL.white:CELL[name],cx=i%ATLAS_N,cy=(i/ATLAS_N)|0,e=.5/(ATLAS_N*ATLAS_PX),s=1/ATLAS_N;
   return[cx*s+e,cy*s+e,(cx+1)*s-e,(cy+1)*s-e];}
 class Mesh{
-  constructor(){this.pos=[];this.uv=[];this.col=[];}
+  constructor(){this.pos=[];this.uv=[];this.col=[];this.sw=[];this.swayV=0;}
   get count(){return this.pos.length/3;}
-  tri(a,b,c,ua,ub,uc,ca,cb,cc){for(const [p,u,k] of [[a,ua,ca],[b,ub,cb],[c,uc,cc]]){this.pos.push(p[0],p[1],p[2]);this.uv.push(u[0],u[1]);this.col.push(k[0],k[1],k[2]);}}
+  tri(a,b,c,ua,ub,uc,ca,cb,cc){for(const [p,u,k] of [[a,ua,ca],[b,ub,cb],[c,uc,cc]]){this.pos.push(p[0],p[1],p[2]);this.uv.push(u[0],u[1]);this.col.push(k[0],k[1],k[2]);this.sw.push(this.swayV);}}
   // a quad a-b-c-d (counter-clockwise seen from the front) showing one atlas cell
   quad(a,b,c,d,cell,col,shade){const [u0,v0,u1,v1]=cellUV(cell),k=col||[1,1,1],s=shade==null?1:shade,K=[k[0]*s,k[1]*s,k[2]*s];
     this.tri(a,b,c,[u0,v1],[u1,v1],[u1,v0],K,K,K);this.tri(a,c,d,[u0,v1],[u1,v0],[u0,v0],K,K,K);}
@@ -68,7 +68,7 @@ class Mesh{
     for(let i=0;i<t.pos.length;i+=3){const x=t.pos[i],y=t.pos[i+1],z=t.pos[i+2],dot=kx*x+ky*y+kz*z,cx=ky*z-kz*y,cy=kz*x-kx*z,cz=kx*y-ky*x;
       t.pos[i]=x*c+cx*s+kx*dot*(1-c)+a[0];t.pos[i+1]=y*c+cy*s+ky*dot*(1-c)+a[1];t.pos[i+2]=z*c+cz*s+kz*dot*(1-c)+a[2];}
     return this.add(t);}
-  add(m){this.pos.push(...m.pos);this.uv.push(...m.uv);this.col.push(...m.col);return this;}
+  add(m){this.pos.push(...m.pos);this.uv.push(...m.uv);this.col.push(...m.col);for(let i=0;i<m.count;i++)this.sw.push(m.sw[i]||this.swayV);return this;}
 }
 const hash=(a,b,c)=>{let h=(a*374761393+b*668265263+(c||0)*2147483647)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0);};
 const rgb=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];

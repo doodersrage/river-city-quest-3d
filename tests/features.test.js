@@ -35,3 +35,6 @@ G.st.clock=G.CYC*.7;go('ow:3,1',16,10);G.loadScene('ow:3,1',16*T,10*T,0);ok(G.da
 go('ow:3,1',16,10);G.enemies.length=0;G.p.hp=1;G.p.inv=0;const r=G.enemies.push(Object.assign({},{type:'rat',x:G.p.x+.3,z:G.p.z,y:0,hp:1,max:1,yaw:0,t:0,kx:0,kz:0,flash:0,state:'idle',st:0}));step({},3);ok(G.deathT>0,'losing your last heart');step({},100);ok(G.p.hp==G.st.max,'you get back up with full hearts');
 // the pause menu
 step({menu:1});ok(G.menu&&G.menu.tab==0,'MENU opens the pause menu');step({right:1});step({right:1});ok(G.menu.tab==2,'tabs flip to the map');step({menu:1});ok(!G.menu,'and close');
+// pigeons scatter when you walk up
+go('ow:2,1',4,3);const pg=G.birds;ok(pg.length>=5,'pigeons peck around Capitol Square ('+pg.length+')');const b0=pg[0];G.p.x=b0.x+5;G.p.z=b0.z;step({},5);ok(b0.state=='peck','they stay put while you keep your distance');
+G.p.x=b0.x+1;G.p.z=b0.z;step({},5);ok(b0.state=='fly','and scatter when you come close');step({},200);ok(b0.state=='gone','then fly off over the rooftops');
