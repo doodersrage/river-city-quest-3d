@@ -59,7 +59,7 @@ function loadScene(id,x,z,yaw){
   refreshDyn(true);
   for(const L of lv.lamps)L.lit=id!='ow:3,0'||!!st.pins.lamps||!!st.f.won;
   p.x=x;p.z=z;if(yaw!=null)p.yaw=yaw;p.vx=p.vz=0;p.dash=0;settle();
-  cam.yaw=lv.room?0:p.yaw+Math.PI;cam.snap=true;
+  cam.yaw=lv.room?0:bestYaw(p.yaw+Math.PI);cam.snap=true;cam.manual=0;
   if(chal&&chal.scene!=id){chalClear();chal=null;toast('Challenge abandoned.');}
   banner=lv.name;bannerT=150;needSave=true;
   if(typeof onSceneLoaded=='function')onSceneLoaded();}
@@ -125,7 +125,7 @@ function playerUpdate(){
   // screen edges lead to the next neighborhood or room
   const W=lv.w*TS,H=lv.h*TS;let ex=0,ez=0;if(p.x<.3)ex=-1;else if(p.x>W-.3)ex=1;else if(p.z<.3)ez=-1;else if(p.z>H-.3)ez=1;
   if(ex||ez)edgeExit(ex,ez);
-  if(tAt(p.x,p.z)=='E'&&st.ret){const r=st.ret;st.ret=null;startTrans(r[0],r[1],r[2],0);}
+  if(tAt(p.x,p.z)=='E'&&st.ret){const r=st.ret;st.ret=null;startTrans(r[0],r[1],r[2],r[3]||0);}
   // A: talk, read, open, or swing
   if(p.swing>0){p.swing--;if(p.swing>=8&&p.swing<=13)swingHits();}
   if(inp.a&&p.swing<6&&!interact()&&p.swing==0){p.swing=18;sfx('swing');}
@@ -166,7 +166,7 @@ function enterDoor(tx,tz){const dr=(lv.doors||[]).find(d=>d.tx==tx&&d.ty==tz);if
   if(dr.need=='keystones'&&nKeys()<4){say(['The tunnel mouth is sealed. Four hollows in the stone wait for keystones. You have '+nKeys()+'.']);return;}
   if(dr.need=='carkey'&&!st.got.carkey){say(['The Carillon door is locked. The caretaker nearby might know where the key went.']);return;}
   if(!sceneData(dr.to)){say(['The door is shut tight.'],null,lv.name);return;}
-  const fd=faceDir(lv,tx,tz);st.ret=[lv.id,(tx+fd[0])*TS+TS/2,(tz+fd[1])*TS+TS/2];sfx('door');const intro=dr.to=='tunnel:0,1'&&!st.f.tunIntro;
+  const fd=faceDir(lv,tx,tz);st.ret=[lv.id,(tx+fd[0])*TS+TS/2,(tz+fd[1])*TS+TS/2,Math.atan2(fd[0],fd[1])];sfx('door');const intro=dr.to=='tunnel:0,1'&&!st.f.tunIntro;
   startTrans(dr.to,8*TS,8.6*TS,Math.PI);
   if(intro){st.f.tunIntro=1;later.push({n:40,f:()=>say(['The keystones crumble into the seal and it splits. Cold air breathes out of the dark.','Rubble chokes the tunnel ahead. Good thing you brought powder.'])});}}
 let later=[];
@@ -456,9 +456,19 @@ function camUpdate(){if(!lv)return;const tx=p.x,ty=1.4,tz=p.z;
   const pitch=lv.room?.92:.42,want=lv.room?12:8.2;let dist=want;
   if(!lv.room)for(let d=1;d<=want;d+=.25){const x=tx+Math.sin(cam.yaw)*d*Math.cos(pitch),z=tz+Math.cos(cam.yaw)*d*Math.cos(pitch),y=ty+d*Math.sin(pitch),c=tAt(x,z);
     if(c&&tallAt(c,y,Math.floor(z/TS))){dist=Math.max(1.6,d-.4);break;}}
+  if(!lv.room&&cam.manual==0&&!p.moving&&dist<want*.5){cam.blocked=(cam.blocked||0)+1;if(cam.blocked>30){const y=bestYaw(cam.yaw);cam.yaw+=ang(cam.yaw,y)*.06;}}else cam.blocked=0;
   cam.dist+=(dist-cam.dist)*(cam.snap?1:dist<cam.dist?.35:.08);cam.snap=false;cam.pitch=pitch;
   cam.x=tx+Math.sin(cam.yaw)*cam.dist*Math.cos(pitch);cam.z=tz+Math.cos(cam.yaw)*cam.dist*Math.cos(pitch);cam.y=ty+cam.dist*Math.sin(pitch);cam.tx=tx;cam.ty=ty;cam.tz=tz;}
-function tallAt(c,y,tz){if(c=='B'||c=='e')return y<8;if(c=='X'||c=='D')return y<9;if(c=='W')return y<(tz==lv.h-1?.8:4);if(c=='T')return y<3.6&&y>1;if(c=='U')return y<2.4;return false;}
+// how far the camera can pull back along a yaw before a wall or building gets in the way
+function camClear(yaw,pitch,want){for(let d=1;d<=want;d+=.25){const x=p.x+Math.sin(yaw)*d*Math.cos(pitch),z=p.z+Math.cos(yaw)*d*Math.cos(pitch),y=1.4+d*Math.sin(pitch),c=tAt(x,z);
+    if(c&&tallAt(c,y,Math.floor(z/TS)))return d;}return want;}
+// the angle with the clearest view nearest the one we'd like, so stepping out of a door doesn't bury the camera in the building
+function camRoom(x,z,y){let m=4;for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const tx=Math.floor(x/TS)+dx,tz=Math.floor(z/TS)+dz,c=tileAt(lv,tx,tz);
+    if(c&&tallAt(c,y,tz)){const ex=Math.max(0,Math.abs(x-(tx+.5)*TS)-TS/2),ez=Math.max(0,Math.abs(z-(tz+.5)*TS)-TS/2);m=Math.min(m,Math.hypot(ex,ez));}}return m;}
+function bestYaw(want){let best=want,bs=-1e9;for(let k=0;k<=12;k++)for(const sgn of k?[1,-1]:[1]){const y=want+sgn*k*Math.PI/12,d=camClear(y,.42,8.2);
+    const cx=p.x+Math.sin(y)*d*Math.cos(.42),cz=p.z+Math.cos(y)*d*Math.cos(.42),room=camRoom(cx,cz,1.4+d*Math.sin(.42));
+    const sc=d/8.2*3+Math.min(room,4)*1.2-k*.03;if(sc>bs){bs=sc;best=y;}}return best;}
+function tallAt(c,y,tz){if(c=='B'||c=='e')return y<8;if('%LH'.includes(c))return y<3.2;if(c=='X'||c=='D')return y<9;if(c=='W')return y<(tz==lv.h-1?.8:4);if(c=='T')return y<3.6&&y>1;if(c=='U')return y<2.4;return false;}
 
 /* ---------- pause menu: items, journal, map (and the bus) ---------- */
 const MTABS=['ITEMS','JOURNAL','MAP','SYSTEM'];
