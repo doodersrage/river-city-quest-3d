@@ -5,7 +5,7 @@
 const TS=2;
 const CELLS=['grass','grass2','flowers','dirt','sand','cobble','sidewalk','steps','rails','planks','brick','brickwin','brickwin2','storefront','roof','stone',
   'stonewall','marble','column','white','door','doorlit','bark','leaves','leaves2','rock','fence','floor','qwall','rubble','sign','gold','glass','wood','black','clock',
-  'copper','chest','face','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
+  'copper','chest','face','eyes','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
 const CELL={};CELLS.forEach((n,i)=>CELL[n]=i);
 const ATLAS_N=16,ATLAS_PX=32;
 function cellUV(name){const i=CELL[name]==null?CELL.white:CELL[name],cx=i%ATLAS_N,cy=(i/ATLAS_N)|0,e=.5/(ATLAS_N*ATLAS_PX),s=1/ATLAS_N;
@@ -49,6 +49,17 @@ class Mesh{
       const [u0,v0,u1,v1]=cellUV(end||cell),k=col||[1,1,1],K=[k[0]*.8,k[1]*.8,k[2]*.8];this.tri([x0,y0,z0],[x0,y0,z1],[x0,yt,zm],[u0,v1],[u1,v1],[(u0+u1)/2,v0],K,K,K);this.tri([x1,y0,z1],[x1,y0,z0],[x1,yt,zm],[u0,v1],[u1,v1],[(u0+u1)/2,v0],K,K,K);}
     else{const xm=(x0+x1)/2;this.quad([x1,y0,z1],[x1,y0,z0],[xm,yt,z0],[xm,yt,z1],cell,col,.85);this.quad([x0,y0,z0],[x0,y0,z1],[xm,yt,z1],[xm,yt,z0],cell,col,.7);
       const [u0,v0,u1,v1]=cellUV(end||cell),k=col||[1,1,1],K=[k[0]*.9,k[1]*.9,k[2]*.9];this.tri([x0,y0,z1],[x1,y0,z1],[xm,yt,z1],[u0,v1],[u1,v1],[(u0+u1)/2,v0],K,K,K);this.tri([x1,y0,z0],[x0,y0,z0],[xm,yt,z0],[u0,v1],[u1,v1],[(u0+u1)/2,v0],K,K,K);}}
+  // a smooth round shape spun around a vertical axis: prof is [[y,r],...] from bottom to top.
+  // Light is worked out per vertex, so it shades smoothly like Gouraud-lit PS1 models.
+  lathe(cx,cy,cz,prof,n,cell,col,sx,sz,cap){sx=sx||1;sz=sz||1;const [u0,v0,u1,v1]=cellUV(cell),k=col||[1,1,1],LX=-.35,LY=.8,LZ=.5,ll=Math.hypot(LX,LY,LZ);
+    const V=(i,j)=>{const [y,r]=prof[i],a=j/n*6.283,ca=Math.cos(a),sa=Math.sin(a);const y0=prof[Math.max(0,i-1)][0],y1=prof[Math.min(prof.length-1,i+1)][0],r0=prof[Math.max(0,i-1)][1],r1=prof[Math.min(prof.length-1,i+1)][1];
+      let ny=-(r1-r0),nh=(y1-y0)||.001;const l=Math.hypot(ny,nh);ny/=l;nh/=l;const nx=ca*nh,nz=sa*nh,d=Math.max(0,(nx*LX+ny*LY+nz*LZ)/ll),f=.5+.5*d;
+      return{p:[cx+ca*r*sx,cy+y,cz+sa*r*sz],c:[k[0]*f,k[1]*f,k[2]*f]};};
+    for(let i=0;i<prof.length-1;i++)for(let j=0;j<n;j++){const a=V(i,j),b=V(i,j+1),c=V(i+1,j+1),d=V(i+1,j);
+      this.tri(a.p,c.p,b.p,[u0,v1],[u1,v0],[u1,v1],a.c,c.c,b.c);this.tri(a.p,d.p,c.p,[u0,v1],[u0,v0],[u1,v0],a.c,d.c,c.c);}
+    if(cap){const t=prof[prof.length-1];if(t[1]>.001)this.disc(cx,cy+t[0],cz,t[1]*Math.max(sx,sz),n,cell,[k[0]*.95,k[1]*.95,k[2]*.95]);const b=prof[0];if(b[1]>.001)this.disc(cx,cy+b[0],cz,b[1]*Math.max(sx,sz),n,cell,[k[0]*.5,k[1]*.5,k[2]*.5],true);}}
+  sphere(cx,cy,cz,r,n,rings,cell,col,sy,sx,sz,from,to){const pr=[];from=from==null?0:from;to=to==null?1:to;for(let i=0;i<=rings;i++){const t=from+(to-from)*i/rings,a=-Math.PI/2+t*Math.PI;pr.push([Math.sin(a)*r*(sy||1),Math.cos(a)*r]);}
+    this.lathe(cx,cy,cz,pr,n,cell,col,sx,sz);}
   add(m){this.pos.push(...m.pos);this.uv.push(...m.uv);this.col.push(...m.col);return this;}
 }
 const hash=(a,b,c)=>{let h=(a*374761393+b*668265263+(c||0)*2147483647)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0);};

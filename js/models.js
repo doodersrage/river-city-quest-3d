@@ -4,13 +4,27 @@
 const MODELS={};
 function part(build,pivot,name){const m=new Mesh();build(m);return{mesh:m,pivot:pivot||[0,0,0],name:name||''};}
 function shadeHex(h,f){const c=rgb(h);return[c[0]*f,c[1]*f,c[2]*f];}
-function humanoid(o){const sk=rgb(o.skin||'#e8b890'),sh=rgb(o.shirt||'#3d63c8'),pa=rgb(o.pants||'#3c3c54'),ha=rgb(o.hat||'#6a4020'),hair=rgb(o.hair||'#3a2414');
-  const P=[part(m=>{m.box(-.3,.92,-.17,.3,1.62,.17,'white',sh);m.box(-.31,.92,-.18,.31,1.0,.18,'white',pa);},[0,0,0],'body'),
-    part(m=>{m.box(-.25,0,-.24,.25,.48,.24,{top:'white',side:'white',south:'face'},sk);m.box(-.27,.38,-.27,.27,.56,.26,'hair',o.capless?hair:ha);
-      if(!o.capless)m.box(-.27,.4,.05,.27,.46,.42,'hair',ha);else m.box(-.27,.12,-.27,.27,.4,-.12,'hair',hair);},[0,1.6,0],'head'),
-    part(m=>m.box(-.12,-.88,-.12,.12,0,.12,'white',pa),[-.15,.92,0],'legL'),part(m=>m.box(-.12,-.88,-.12,.12,0,.12,'white',pa),[.15,.92,0],'legR'),
-    part(m=>{m.box(-.09,-.55,-.09,.09,0,.09,'white',sh);m.box(-.08,-.7,-.08,.08,-.55,.08,'white',sk);},[-.39,1.55,0],'armL'),
-    part(m=>{m.box(-.09,-.55,-.09,.09,0,.09,'white',sh);m.box(-.08,-.7,-.08,.08,-.55,.08,'white',sk);if(o.paddle){m.box(-.04,-.75,-.05,.04,-.6,1.2,'wood');m.box(-.03,-.82,1.0,.03,-.52,1.55,'white',rgb(o.gold?'#f2c14e':'#e83048'));}},[.39,1.55,0],'armR')];
+function humanoid(o){const sk=rgb(o.skin||'#e8b890'),sh=rgb(o.shirt||'#3d63c8'),pa=rgb(o.pants||'#3c3c54'),ha=rgb(o.hat||'#6a4020'),hair=rgb(o.hair||'#3a2414'),shoe=rgb(o.shoe||'#2a2228'),N=10,w=o.wide||1;
+  const legCol=o.skirt?sk:pa;
+  const P=[
+    part(m=>{if(o.skirt)m.lathe(0,0,0,[[.5,.36],[.72,.31],[.95,.26],[1.08,.25]],N,'white',pa,w,.78,true);else m.lathe(0,0,0,[[.84,.2],[.97,.25],[1.08,.26]],N,'white',pa,w,.72,true);
+      m.lathe(0,0,0,[[1.0,.24],[1.12,.22],[1.28,.27],[1.44,.3],[1.54,.27],[1.62,.13]],N,'white',sh,w,.7,true);m.sphere(-.29*w,1.49,0,.115,8,5,'white',sh);m.sphere(.29*w,1.49,0,.115,8,5,'white',sh);m.lathe(0,0,0,[[1.56,.075],[1.7,.07]],8,'white',sk);},[0,0,0],'body'),
+    part(m=>{m.sphere(0,.27,0,.25,N,7,'white',sk,1.1);m.quad([-.2,.06,.235],[.2,.06,.235],[.2,.42,.235],[-.2,.42,.235],'eyes');
+      m.sphere(-.25,.25,0,.055,6,3,'white',sk);m.sphere(.25,.25,0,.055,6,3,'white',sk);m.sphere(0,.2,.25,.045,6,3,'white',[sk[0]*.92,sk[1]*.85,sk[2]*.8]);
+      const st=o.style||'short';
+      if(st=='long')m.sphere(0,.1,-.06,.27,N,5,'white',hair,1.45,1.04,.82,.45,1);
+      if(o.capless){m.sphere(0,.29,-.015,.272,N,5,'white',hair,1.1,1.04,1.04,.52,1);if(st=='bun')m.sphere(0,.5,-.2,.11,8,4,'white',hair);}
+      else{m.sphere(0,.29,-.01,.275,N,5,'white',ha,1.08,1.04,1.04,.55,1);m.lathe(0,.36,.08,[[0,.0],[.0,.22],[.05,.22]],N,'white',[ha[0]*.85,ha[1]*.85,ha[2]*.85],1,1.25,true);
+        m.sphere(0,.32,-.13,.2,N,5,'white',hair,1,1.15,.8);}},[0,1.6,0],'head'),
+    part(m=>{m.lathe(0,0,0,[[-.82,.075],[-.5,.095],[-.15,.12],[0,.12]],8,'white',legCol);m.sphere(0,-.84,.05,.11,8,4,'white',shoe,.6,1,1.55,.5,1);},[-.13,.92,0],'legL'),
+    part(m=>{m.lathe(0,0,0,[[-.82,.075],[-.5,.095],[-.15,.12],[0,.12]],8,'white',legCol);m.sphere(0,-.84,.05,.11,8,4,'white',shoe,.6,1,1.55,.5,1);},[.13,.92,0],'legR'),
+    part(m=>{m.lathe(0,0,0,[[-.32,.085],[-.08,.1],[0,.09]],8,'white',sh,1,1,true);m.lathe(0,0,0,[[-.62,.06],[-.32,.072]],8,'white',sk);m.sphere(0,-.67,0,.075,8,4,'white',sk);},[-.37*w,1.5,0],'armL'),
+    part(m=>{m.lathe(0,0,0,[[-.32,.085],[-.08,.1],[0,.09]],8,'white',sh,1,1,true);m.lathe(0,0,0,[[-.62,.06],[-.32,.072]],8,'white',sk);m.sphere(0,-.67,0,.075,8,4,'white',sk);
+      },[.37*w,1.5,0],'armR')];
+  if(o.paddle){const arm=P[5].mesh,c=rgb(o.gold?'#f2c14e':'#e83048');arm.pos.length=0;arm.uv.length=0;arm.col.length=0;
+    arm.lathe(0,0,0,[[-.32,.085],[-.08,.1],[0,.09]],8,'white',sh,1,1,true);arm.lathe(0,0,0,[[-.62,.06],[-.32,.072]],8,'white',sk);arm.sphere(0,-.67,0,.075,8,4,'white',sk);
+    const pd=new Mesh();pd.lathe(0,0,0,[[-.5,.03],[1.35,.03]],6,'wood');pd.sphere(0,1.55,0,.24,8,5,'white',c,1,.5,.2);pd.sphere(0,-.66,0,.15,8,4,'white',c,1,.45,.2);
+    for(let i=0;i<pd.pos.length;i+=3){const y=pd.pos[i+1],z=pd.pos[i+2];pd.pos[i+1]=y*.6-z*.8-.67;pd.pos[i+2]=y*.8+z*.6;}arm.add(pd);}
   return P;}
 function enemyModel(t){const P=[];
   if(t=='rat'){P.push(part(m=>{m.box(-.26,.05,-.42,.26,.42,.36,'white',rgb('#7a7480'));m.box(-.18,.1,.3,.18,.36,.62,{top:'white',side:'white',south:'face'},rgb('#8a8490'));m.box(-.2,.36,.36,-.08,.5,.46,'white',rgb('#e8a0a8'));m.box(.08,.36,.36,.2,.5,.46,'white',rgb('#e8a0a8'));},[0,0,0],'body'),

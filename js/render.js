@@ -100,18 +100,18 @@ function render(fade){const env=envLook();gl.bindFramebuffer(gl.FRAMEBUFFER,fbo)
   gl.bindVertexArray(quadVAO);gl.drawArrays(gl.TRIANGLES,0,6);gl.bindVertexArray(null);}
 function shadowAt(x,z,s){const sh=getModel('shadow',()=>propModel('shadow'));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1f(U.uAlpha,.4);gl.depthMask(false);
   drawModel(sh,M4.mul(M4.tr(x,0,z),M4.sc(s||1)));gl.uniform1f(U.uAlpha,1);gl.depthMask(true);gl.disable(gl.BLEND);}
-function humanPose(walk,moving,extra){const s=moving?Math.sin(walk)*.7:0;return Object.assign({legL:{x:s},legR:{x:-s},armL:{x:-s*.8},armR:{x:s*.8},body:{t:[0,moving?Math.abs(Math.cos(walk))*.06:0,0]}},extra||{});}
+function humanPose(walk,moving,extra){const s=moving?Math.sin(walk)*.7:0;return Object.assign({legL:{x:s},legR:{x:-s},armL:{x:-s*.8,z:-.12},armR:{x:s*.8,z:.12},body:{t:[0,moving?Math.abs(Math.cos(walk))*.06:0,0]}},extra||{});}
 function npcModel(n){return getModel('npc:'+n.who+':'+n.tx+','+n.ty,()=>{const h=hash(n.tx,n.ty,n.who.length),skins=['#e8b890','#c08860','#8a5a3a','#f0c8a0'],pants=['#3c3c54','#5a4a3a','#2e3a5e','#4a4a4a'];
-  return humanoid({hat:n.hat?n.hat[0]:'#6a4020',shirt:n.shirt?n.shirt[0]:'#58a850',skin:skins[h%4],pants:pants[(h>>3)%4],hair:['#3a2414','#1a1410','#c89048','#7a4a24'][(h>>5)%4],capless:h%3==0});});}
+  const capless=h%3!=1,style=['short','long','bun','short','long'][(h>>7)%5];return humanoid({hat:n.hat?n.hat[0]:'#6a4020',shirt:n.shirt?n.shirt[0]:'#58a850',skin:skins[h%4],pants:pants[(h>>3)%4],hair:['#3a2414','#1a1410','#c89048','#7a4a24','#8a8a90'][(h>>5)%5],capless,style,skirt:style!='short'&&(h>>9)%2==0,wide:.92+((h>>11)%4)*.05});});}
 function drawEntities(){
   // the player
-  const P=getModel('player:'+(st.gold?1:0),()=>humanoid({hat:'#e83048',shirt:'#3d63c8',skin:'#e8b890',pants:'#3c3c54',paddle:true}));
+  const P=getModel('player:'+(st.gold?1:0),()=>humanoid({hat:'#e83048',shirt:'#3d63c8',skin:'#e8b890',pants:'#3c3c54',hair:'#6a3a1e',paddle:true}));
   if(mode!='title'&&(!(p.inv>0&&(frame>>2)&1)||deathT>0)){const sw=p.swing>0?(18-p.swing)/18:0,ex={};
     if(p.swing>0)ex.armR={x:-1.5,y:1.6-sw*3.4};if(p.raise>0){ex.armL={x:-2.6};p.raise--;}if(p.hold>0){ex.armL={x:-2.9};ex.armR={x:-2.9};}
     let base=M4.mul(M4.tr(p.x,0,p.z),M4.ry(p.yaw));if(deathT>0)base=M4.mul(base,M4.rx(-Math.min(1.5,(90-deathT)/20)));
     shadowAt(p.x,p.z);drawModel(P,base,humanPose(p.walk,p.moving,ex));
     if(st.items.lantern&&(st.eq=='lantern'||dark()>.3||lv.room)){const L=getModel('lanternProp',()=>[part(m=>{m.box(-.12,-.3,-.12,.12,0,.12,{top:'black',side:'glass'});m.box(-.03,0,-.03,.03,.12,.03,'black');},[0,0,0])]);
-      const arm=p.raise>0||p.hold>0?M4.mul(M4.tr(-.39,1.55,0),M4.rx(-2.6)):M4.mul(M4.tr(-.39,1.55,0),M4.rx(p.moving?-Math.sin(p.walk)*.56:0));drawModel(L,M4.mul(M4.mul(base,arm),M4.tr(0,-.75,0)),null,{tint:[1.4,1.3,1.1]});}
+      const arm=p.raise>0||p.hold>0?M4.mul(M4.tr(-.37,1.5,0),M4.rx(-2.6)):M4.mul(M4.tr(-.37,1.5,0),M4.rx(p.moving?-Math.sin(p.walk)*.56:0));drawModel(L,M4.mul(M4.mul(base,arm),M4.tr(0,-.75,0)),null,{tint:[1.4,1.3,1.1]});}
     if(p.hold>0&&p.holdIc){const k=p.holdIc=='keystone'?'keystone':p.holdIc=='key'?'key':p.holdIc=='lantern'?'lanternProp':p.holdIc=='powder'?'bomb':'coin';
       const im=getModel(k,()=>propModel(k));if(im&&im.length)drawModel(im,M4.mul(M4.tr(p.x,2.6+Math.sin(frame*.1)*.08,p.z),M4.ry(frame*.05)));}}
   for(const n of npcs){shadowAt(n.x,n.z);drawModel(npcModel(n),M4.mul(M4.tr(n.x,0,n.z),M4.ry(n.yaw)),humanPose(n.walk,n.wander&&!(n.look>0),{}));
