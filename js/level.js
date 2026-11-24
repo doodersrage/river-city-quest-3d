@@ -54,14 +54,21 @@ function buildMesh(lv){
         M.floor(X0,Z0,X1,Z1,ht,'roof');M.box(X0,ht,Z0,X1,ht+.25,Z1,{top:'stone',side:'stone'},null,{bottom:1});break;}
       case'X':case'D':{if(lmAt(lv,x,y))break;const ht=bh(x,y);M.box(X0,0,Z0,X1,ht,Z1,{top:'roof',side:room?'qwall':'stone'},null,{bottom:1},true);break;}
       case'W':{const wh=y==lv.h-1?.8:4;M.box(X0,0,Z0,X1,wh,Z1,{top:wh<1?'qwall':'black',side:'qwall'},null,{bottom:1},wh>1);break;}
-      case'T':{const r=.95+(h%5)*.08,t=h%7==0;M.box(cx-.18,0,cz-.18,cx+.18,1.3,cz+.18,'bark');
-        if(t){M.cone(cx,1,cz,.2,2.2,r*1.2,6,'leaves2',null,h);M.cone(cx,2.2,cz,r*1.2,3.6,.1,6,'leaves2',null,h);}
-        else{M.cone(cx,.9,cz,r*1.15,2.6,.15,6,'leaves',null,h);M.cone(cx,2.1,cz,r*.85,3.9,0,6,'leaves',null,h+1);}break;}
+      case'T':{const r=.95+(h%5)*.08,kind=h%5;
+        if(kind<2){M.tube([cx,0,cz],[cx,1.4,cz],.2,.15,6,'bark');M.cone(cx,.9,cz,r*1.25,2.0,r*.5,7,'leaves',null,h);M.cone(cx,1.7,cz,r*1.05,2.9,r*.3,7,'leaves',null,h+1);M.cone(cx,2.6,cz,r*.75,4.1,0,7,'leaves',null,h+2);}
+        else{M.tube([cx,0,cz],[cx,1.9,cz],.2,.13,6,'bark');M.tube([cx,1.3,cz],[cx+.5,2.2,cz+.2],.09,.05,5,'bark');M.tube([cx,1.4,cz],[cx-.45,2.3,cz-.25],.09,.05,5,'bark');
+          const lc=kind==4?'leaves2':'leaves';M.sphere(cx,2.5,cz,r*.95,8,5,lc,null,.85);M.sphere(cx+.55,2.25,cz+.2,r*.62,7,4,lc,null,.85);M.sphere(cx-.5,2.35,cz-.25,r*.66,7,4,lc,null,.85);M.sphere(cx+.1,3.05,cz-.1,r*.55,7,4,lc,null,.9);}break;}
       case'r':{const s=.55+(h%4)*.12;M.cone(cx,0,cz,s*1.4,s*.9,s*.7,5,'rock',null,h);M.cone(cx,s*.9,cz,s*.7,s*1.2,0,5,'rock',null,h);break;}
       case'R':M.box(X0,0,Z0,X1,1,Z1,{top:'stonewall',side:'stone'},null,{bottom:1});break;
-      case'f':M.box(X0,0,Z0+.9,X1,1.3,Z0+1.1,{top:'black',side:'fence'},null,{bottom:1,top:1});M.box(cx-.07,0,cz-.07,cx+.07,1.5,cz+.07,'black');break;
-      case'l':M.box(cx-.08,0,cz-.08,cx+.08,2.7,cz+.08,'black');M.box(cx-.25,2.6,cz-.25,cx+.25,3.2,cz+.25,{top:'black',side:'glass'});M.cone(cx,3.2,cz,.35,3.5,0,4,'black',null,.785);lv.glows.push([cx,2.9,cz,x,y]);break;
-      case'i':M.box(X0+.2,.45,Z0+.6,X1-.2,.6,Z1-.5,'wood');M.box(X0+.2,.6,Z0+.5,X1-.2,1.2,Z0+.62,'wood');M.box(X0+.3,0,Z0+.7,X0+.45,.45,Z1-.6,'black');M.box(X1-.45,0,Z0+.7,X1-.3,.45,Z1-.6,'black');break;
+      case'f':{const n=(dx,dy)=>src(x+dx,y+dy)=='f',ew=n(1,0)||n(-1,0),ns=n(0,1)||n(0,-1);
+        const run=(ax0,az0,ax1,az1)=>{M.box(Math.min(ax0,ax1)-.04,1.05,Math.min(az0,az1)-.04,Math.max(ax0,ax1)+.04,1.13,Math.max(az0,az1)+.04,'black');M.box(Math.min(ax0,ax1)-.04,.18,Math.min(az0,az1)-.04,Math.max(ax0,ax1)+.04,.25,Math.max(az0,az1)+.04,'black');
+          const L=Math.hypot(ax1-ax0,az1-az0),k=Math.round(L/.25);for(let i=0;i<=k;i++){const t=i/k,px=ax0+(ax1-ax0)*t,pz=az0+(az1-az0)*t;M.box(px-.025,0,pz-.025,px+.025,1.22,pz+.025,'black');M.cone(px,1.22,pz,.05,1.34,0,4,'black');}};
+        if(ew||!ns)run(n(-1,0)?X0:cx,cz,n(1,0)?X1:cx,cz);if(ns)run(cx,n(0,-1)?Z0:cz,cx,n(0,1)?Z1:cz);
+        M.lathe(cx,0,cz,[[0,.09],[1.3,.08],[1.36,.11],[1.42,0]],6,'black');break;}
+      case'l':{M.lathe(cx,0,cz,[[0,.2],[.25,.18],[.35,.1],[.6,.07],[2.5,.06],[2.6,.1]],6,'black');M.box(cx-.22,2.6,cz-.22,cx+.22,2.68,cz+.22,'black');
+        M.lathe(cx,2.68,cz,[[0,.16],[.4,.24],[.55,.26]],4,'glass',null,1,1);M.lathe(cx,3.23,cz,[[0,.3],[.12,.28],[.32,.06],[.42,0]],4,'black');M.sphere(cx,3.68,cz,.05,4,2,'black');lv.glows.push([cx,2.95,cz,x,y]);break;}
+      case'i':{for(let k=0;k<3;k++)M.box(X0+.15,.44,Z0+.55+k*.18,X1-.15,.52,Z0+.69+k*.18,'wood');for(let k=0;k<2;k++)M.box(X0+.15,.75+k*.24,Z0+.42,X1-.15,.9+k*.24,Z0+.5,'wood');
+        for(const ex of [X0+.3,X1-.3]){M.box(ex-.05,0,Z0+.45,ex+.05,1.25,Z0+.55,'black');M.box(ex-.05,0,Z1-.6,ex+.05,.5,Z1-.5,'black');M.box(ex-.05,.42,Z0+.45,ex+.05,.5,Z1-.5,'black');M.box(ex-.05,.68,Z0+.5,ex+.05,.74,Z1-.55,'black');}break;}
       case'a':M.box(cx-.05,0,cz-.05,cx+.05,.8,cz+.05,'black');M.disc(cx,.8,cz,.5,6,'white',[.9,.9,.85]);break;
       case'M':{const fd=faceDir(lv,x,y);M.box(cx-.07,0,cz-.07,cx+.07,1.2,cz+.07,'black');
         if(fd[0])M.box(cx-.06,1,cz-.7,cx+.06,2.1,cz+.7,{top:'black',side:'black',east:'sign',west:'sign'});else M.box(cx-.7,1,cz-.06,cx+.7,2.1,cz+.06,{top:'black',side:'black',south:'sign',north:'sign'});break;}

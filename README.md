@@ -11,6 +11,7 @@ This first build is a playable slice: four neighborhoods, the quarry dungeon and
 | ![Title](screenshots/title.png) | ![Shockoe Bottom](screenshots/shockoe.png) |
 | ![Church Hill](screenshots/church-hill.png) | ![Church Hill at night](screenshots/night.png) |
 | ![Old Snapper](screenshots/old-snapper.png) | ![The map](screenshots/map.png) |
+| ![The reenactor and Rory](screenshots/people.png) | ![Rats, geese, crabs and bats](screenshots/creatures.png) |
 
 ## What's in it
 
@@ -18,7 +19,7 @@ This first build is a playable slice: four neighborhoods, the quarry dungeon and
 - **Landmarks:** the Capitol's portico, the old bell tower, Main Street Station's clock tower, the 17th Street Market shed, St. John's Church and the power plant ruins on Belle Isle.
 - **The Belle Isle Quarry:** four rooms with a small key, a locked door, blasting powder, a cracked wall and Old Snapper, a giant turtle you have to trick into charging a wall.
 - **A third-person camera** that trails behind you like late-90s 3D adventures. Swing it with a drag, the right stick or Q and E. In the quarry it holds a fixed angle over each room.
-- **People and stories:** everyone from the 2D slice is here with their lines, and every historical marker goes into your journal.
+- **People and stories:** everyone from the 2D slice is here with their lines, and every historical marker goes into your journal. People are rounded low-poly figures with faces, hair and hats, and dress for their part: the archivist's glasses and book, the reenactor's tricorn and coat, the lamplighter's pole, the kayaker's helmet and life vest.
 - **Four neighborhood challenges:** light Church Hill's gas lamps, clear the market rats, clean up Belle Isle and take the history quiz.
 - **Day and night:** a full day passes about every ten minutes. At night the fog closes in, the gas lamps glow, your lantern lights the way and ghosts come out.
 - **The PS1 look, done by hand:** everything renders at 320x240, vertices snap to that pixel grid so they wobble, textures warp without perspective correction, colors are dithered down to 15 bits, and fog hides the short draw distance. There's no 3D library: it's plain WebGL 2.

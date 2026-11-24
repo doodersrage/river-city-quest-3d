@@ -102,10 +102,13 @@ function shadowAt(x,z,s){const sh=getModel('shadow',()=>propModel('shadow'));gl.
   drawModel(sh,M4.mul(M4.tr(x,0,z),M4.sc(s||1)));gl.uniform1f(U.uAlpha,1);gl.depthMask(true);gl.disable(gl.BLEND);}
 function humanPose(walk,moving,extra){const s=moving?Math.sin(walk)*.7:0;return Object.assign({legL:{x:s},legR:{x:-s},armL:{x:-s*.8,z:-.12},armR:{x:s*.8,z:.12},body:{t:[0,moving?Math.abs(Math.cos(walk))*.06:0,0]}},extra||{});}
 function npcModel(n){return getModel('npc:'+n.who+':'+n.tx+','+n.ty,()=>{const h=hash(n.tx,n.ty,n.who.length),skins=['#e8b890','#c08860','#8a5a3a','#f0c8a0'],pants=['#3c3c54','#5a4a3a','#2e3a5e','#4a4a4a'];
-  const capless=h%3!=1,style=['short','long','bun','short','long'][(h>>7)%5];return humanoid({hat:n.hat?n.hat[0]:'#6a4020',shirt:n.shirt?n.shirt[0]:'#58a850',skin:skins[h%4],pants:pants[(h>>3)%4],hair:['#3a2414','#1a1410','#c89048','#7a4a24','#8a8a90'][(h>>5)%5],capless,style,skirt:style!='short'&&(h>>9)%2==0,wide:.92+((h>>11)%4)*.05});});}
+  const ROLE={archivist:['glasses','book'],quiz:['clipboard'],rats:['apron'],henry:['tricorn','coat'],lamps:['pole','coat'],racer:['helmet'],kayaker:['helmet','vest'],cleanup:['gloves']},acc=ROLE[n.chal||n.talk]||[];
+  const capless=(h%3!=1)||acc.includes('tricorn')||acc.includes('helmet')?!acc.includes('tricorn'):false,style=['short','long','bun','short','long'][(h>>7)%5];
+  if(acc.includes('tricorn')||acc.includes('helmet'))return humanoid({hat:'#1e1c24',shirt:n.shirt?n.shirt[0]:'#58a850',skin:skins[h%4],pants:pants[(h>>3)%4],hair:['#3a2414','#1a1410','#c89048','#7a4a24','#8a8a90'][(h>>5)%5],capless:true,style:'short',acc,coat:n.talk=='henry'?'#2a3a6a':'#4a3a2a',helm:n.talk=='racer'?'#e83048':'#f2c14e',wide:1});
+  return humanoid({acc,coat:'#4a3a2a',hat:n.hat?n.hat[0]:'#6a4020',shirt:n.shirt?n.shirt[0]:'#58a850',skin:skins[h%4],pants:pants[(h>>3)%4],hair:['#3a2414','#1a1410','#c89048','#7a4a24','#8a8a90'][(h>>5)%5],capless,style,skirt:style!='short'&&(h>>9)%2==0,wide:.92+((h>>11)%4)*.05});});}
 function drawEntities(){
   // the player
-  const P=getModel('player:'+(st.gold?1:0),()=>humanoid({hat:'#e83048',shirt:'#3d63c8',skin:'#e8b890',pants:'#3c3c54',hair:'#6a3a1e',paddle:true}));
+  const P=getModel('player:'+(st.gold?1:0),()=>humanoid({hat:'#e83048',shirt:'#3d63c8',skin:'#e8b890',pants:'#3c3c54',hair:'#6a3a1e',paddle:true,acc:['pack']}));
   if(mode!='title'&&(!(p.inv>0&&(frame>>2)&1)||deathT>0)){const sw=p.swing>0?(18-p.swing)/18:0,ex={};
     if(p.swing>0)ex.armR={x:-1.5,y:1.6-sw*3.4};if(p.raise>0){ex.armL={x:-2.6};p.raise--;}if(p.hold>0){ex.armL={x:-2.9};ex.armR={x:-2.9};}
     let base=M4.mul(M4.tr(p.x,0,p.z),M4.ry(p.yaw));if(deathT>0)base=M4.mul(base,M4.rx(-Math.min(1.5,(90-deathT)/20)));

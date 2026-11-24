@@ -60,6 +60,14 @@ class Mesh{
     if(cap){const t=prof[prof.length-1];if(t[1]>.001)this.disc(cx,cy+t[0],cz,t[1]*Math.max(sx,sz),n,cell,[k[0]*.95,k[1]*.95,k[2]*.95]);const b=prof[0];if(b[1]>.001)this.disc(cx,cy+b[0],cz,b[1]*Math.max(sx,sz),n,cell,[k[0]*.5,k[1]*.5,k[2]*.5],true);}}
   sphere(cx,cy,cz,r,n,rings,cell,col,sy,sx,sz,from,to){const pr=[];from=from==null?0:from;to=to==null?1:to;for(let i=0;i<=rings;i++){const t=from+(to-from)*i/rings,a=-Math.PI/2+t*Math.PI;pr.push([Math.sin(a)*r*(sy||1),Math.cos(a)*r]);}
     this.lathe(cx,cy,cz,pr,n,cell,col,sx,sz);}
+  // a round tube from point a to point b (radius r0 at a, r1 at b), with rounded ends if caps
+  tube(a,b,r0,r1,n,cell,col,caps){const t=new Mesh(),L=Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2]);t.lathe(0,0,0,[[0,r0],[L,r1]],n,cell,col);
+    if(caps){t.sphere(0,0,0,r0,n,3,cell,col,1,1,1,0,.5);t.sphere(0,L,0,r1,n,3,cell,col,1,1,1,.5,1);}
+    const d=[(b[0]-a[0])/L,(b[1]-a[1])/L,(b[2]-a[2])/L];let ax=[d[2],0,-d[0]];const al=Math.hypot(ax[0],ax[2]);const ang=Math.acos(Math.max(-1,Math.min(1,d[1])));
+    if(al<1e-6)ax=[1,0,0];else ax=[ax[0]/al,0,ax[2]/al];const c=Math.cos(ang),s=Math.sin(ang),[kx,ky,kz]=ax;
+    for(let i=0;i<t.pos.length;i+=3){const x=t.pos[i],y=t.pos[i+1],z=t.pos[i+2],dot=kx*x+ky*y+kz*z,cx=ky*z-kz*y,cy=kz*x-kx*z,cz=kx*y-ky*x;
+      t.pos[i]=x*c+cx*s+kx*dot*(1-c)+a[0];t.pos[i+1]=y*c+cy*s+ky*dot*(1-c)+a[1];t.pos[i+2]=z*c+cz*s+kz*dot*(1-c)+a[2];}
+    return this.add(t);}
   add(m){this.pos.push(...m.pos);this.uv.push(...m.uv);this.col.push(...m.col);return this;}
 }
 const hash=(a,b,c)=>{let h=(a*374761393+b*668265263+(c||0)*2147483647)|0;h=(h^(h>>>13))*1274126177|0;return((h^(h>>>16))>>>0);};
