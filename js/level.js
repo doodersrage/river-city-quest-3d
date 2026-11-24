@@ -1,25 +1,32 @@
 "use strict";
 /* River City Quest 3D: turns a 2D map from the original game into a 3D place.
    Every tile becomes geometry: brick rows become buildings, T becomes a tree, w becomes the James. */
-const WALK='.,psSKk=-FEn';
-const GROUND={'.':'grass',',':'flowers','p':'cobble','s':'sidewalk','S':'steps','K':'rails','k':'planks','=':'planks','-':'planks','F':'floor','E':'steps','n':'sand'};
+const WALK='.,psSKk=-FEn^|1';
+const GROUND={'.':'grass',',':'flowers','p':'cobble','s':'sidewalk','S':'steps','K':'rails','k':'rails','=':'planks','-':'planks','F':'floor','E':'steps','n':'sand','^':'floor','|':'floor'};
 const WATER='w~';
+const DUNGEONS=['quarry','pyramid','poe','carillon','tredegar','conserv','tunnel','libby','ruins'];
 const LEVELS={};
 function sceneData(id){return RCQ.maps[id]||RCQ.rooms[id]||null;}
+function edgeLink(id,cells,h){const [cx,cy]=cells[0],[ar,co]=id.split(':'),[ax,ay]=co.split(',').map(Number);
+  const n=cy==0?[ax,ay-1]:cy==h-1?[ax,ay+1]:cx==0?[ax-1,ay]:[ax+1,ay];return[id,ar+':'+n[0]+','+n[1]].sort().join('|');}
 function buildLevel(id){
   const d=sceneData(id);if(!d)return null;
-  const g=d.rows.map(r=>r.split('')),lv={id,d,name:d.name,w:d.w,h:d.h,base:d.base,room:id.indexOf('ow:')!=0,g,dyn:[],glows:[],markers:{},doors:d.doors,
-    lamps:d.lamps.map(([x,y])=>({tx:x,ty:y,lit:false})),spots:d.spots||[]};
+  const g=d.rows.map(r=>r.split('')),room=id.indexOf('ow:')!=0,lv={id,d,name:d.name,w:d.w,h:d.h,base:d.base,room,dungeon:room&&DUNGEONS.includes(d.area),
+    g,dyn:[],glows:[],markers:{},doors:d.doors,lamps:d.lamps.map(([x,y])=>({tx:x,ty:y,lit:false})),spots:d.spots||[]};
   for(const k in d.reads)lv.markers[k]=d.reads[k];
-  lv.props=lv.room?[]:scatterProps(lv);
+  lv.props=room?[]:scatterProps(lv);
   // things that can change while you play live outside the static mesh
   for(let y=0;y<lv.h;y++)for(let x=0;x<lv.w;x++){const c=g[y][x];
     if(c=='b')lv.dyn.push({kind:'bush',tx:x,ty:y,on:true,under:lv.base=='F'?'F':lv.base});
-    if(c=='%'&&!lv.room)lv.dyn.push({kind:'rubble',tx:x,ty:y,on:true,under:'D'});}
-  for(const dd of d.dyn){if(dd.closed!='L'&&dd.closed!='%')continue;const [cx,cy]=dd.cells[0],[ar,co]=id.split(':'),[ax,ay]=co.split(',').map(Number);
-    const n=cy==0?[ax,ay-1]:cy==lv.h-1?[ax,ay+1]:cx==0?[ax-1,ay]:[ax+1,ay],link=[id,ar+':'+n[0]+','+n[1]].sort().join('|');
-    lv.dyn.push({kind:dd.closed=='L'?'lock':'crack',cells:dd.cells,on:true,under:dd.open,tx:cx,ty:cy,link});}
-  for(const o of lv.dyn)for(const [x,y] of o.cells||[[o.tx,o.ty]])g[y][x]=o.kind=='bush'?'b':o.kind=='lock'?'L':'%';
+    if(c=='#')lv.dyn.push({kind:'block',tx:x,ty:y,on:true,under:'F',hx:x,hy:y});
+    if(c=='z')lv.dyn.push({kind:'sprout',tx:x,ty:y,on:true,under:'1'});}
+  (d.braz||[]).forEach(([x,y],i)=>lv.dyn.push({kind:'brazier',tx:x,ty:y,on:true,i,lit:false,under:'j'}));
+  for(const dd of d.dyn){const [cx,cy]=dd.cells[0],edge=room&&(cy==0||cy==lv.h-1||cx==0||cx==lv.w-1);
+    if(dd.closed=='L')lv.dyn.push({kind:'lock',cells:dd.cells,on:true,under:dd.open,tx:cx,ty:cy,link:edgeLink(id,dd.cells,lv.h)});
+    else if(dd.closed=='H')lv.dyn.push({kind:'gate',cells:dd.cells,on:true,under:dd.open,tx:cx,ty:cy,solved:dd.solved});
+    else if(dd.closed=='%')lv.dyn.push({kind:edge?'crack':'rubble',cells:dd.cells,on:true,under:dd.open,tx:cx,ty:cy,link:edge?edgeLink(id,dd.cells,lv.h):null});}
+  for(const o of lv.dyn)for(const [x,y] of o.cells||[[o.tx,o.ty]])g[y][x]={bush:'b',lock:'L',gate:'H',crack:'%',rubble:'%',block:'#',sprout:'z',brazier:'j'}[o.kind];
+  for(let y=0;y<lv.h;y++)for(let x=0;x<lv.w;x++)if(g[y][x]=='#'&&!lv.dyn.some(o=>o.kind=='block'&&o.tx==x&&o.ty==y))g[y][x]='F';
   return lv;}
 function tileAt(lv,tx,ty){if(tx<0||ty<0||tx>=lv.w||ty>=lv.h)return null;return lv.g[ty][tx];}
 function walkable(c){return c!=null&&WALK.includes(c);}
@@ -57,17 +64,20 @@ function propMesh(M,pr){const {x,z}=pr,R=(a,b,c,d,e,f,cells,col)=>{const cs=Math
   }}
 /* ---------- static geometry ---------- */
 const BLOCKS='BX';
-function compOf(lv){const comp=[],id={};let n=0;
-  for(let y=0;y<lv.h;y++)for(let x=0;x<lv.w;x++){if(lv.d.rows[y][x]!='B'||id[x+','+y]!=null)continue;const q=[[x,y]];id[x+','+y]=n;
-    while(q.length){const [a,b]=q.pop();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=(a+dx)+','+(b+dy);if(id[k]==null&&lv.d.rows[b+dy]&&lv.d.rows[b+dy][a+dx]=='B'){id[k]=n;q.push([a+dx,b+dy]);}}}n++;}
+function isB(rows,x,y){const c=rows[y]&&rows[y][x];if(c=='B')return true;if(c!='e')return false;return[[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>rows[y+b]&&rows[y+b][x+a]=='B');}
+function compOf(lv){const comp=[],id={},rows=lv.d.rows;let n=0;
+  for(let y=0;y<lv.h;y++)for(let x=0;x<lv.w;x++){if(!isB(rows,x,y)||id[x+','+y]!=null)continue;const q=[[x,y]];id[x+','+y]=n;
+    while(q.length){const [a,b]=q.pop();for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const k=(a+dx)+','+(b+dy);if(id[k]==null&&isB(rows,a+dx,b+dy)){id[k]=n;q.push([a+dx,b+dy]);}}}n++;}
   return id;}
 function lmAt(lv,x,y){return(lv.d.lm||[]).find(L=>x>=L.x&&x<L.x+L.w&&y>=L.y&&y<L.y+L.h);}
 function groundCell(lv,c,x,y){if(GROUND[c])return c=='.'&&hash(x,y,3)%3==0?'grass2':GROUND[c];const b=lv.base;return GROUND[b]?(b=='.'&&hash(x,y,3)%3==0?'grass2':GROUND[b]):'grass';}
 function buildMesh(lv){
   const M=new Mesh(),Wm=new Mesh(),Fm=new Mesh(),Fr=new Mesh(),rows=lv.d.rows,comp=compOf(lv),H={};
   const src=(x,y)=>x<0||y<0||x>=lv.w||y>=lv.h?null:rows[y][x];
-  const bh=(x,y)=>{const c=src(x,y);if(c=='B'){const k=comp[x+','+y],v=hash(k,lv.d.ax*7+lv.d.ay,11)%3;return(2+v)*TS;}if(c=='X'||c=='D'&&!lmAt(lv,x,y))return 2*TS;return 0;};
-  const room=lv.room;
+  const bh=(x,y)=>{const c=src(x,y);if(comp[x+','+y]!=null){const k=comp[x+','+y],v=hash(k,lv.d.ax*7+lv.d.ay,11)%3;return(2+v)*TS;}if(c=='X'||c=='D'&&!lmAt(lv,x,y))return 2*TS;return 0;};
+  const room=lv.room,sty=lv.d.style||{},lit=room&&!lv.dungeon,tint=(h,base)=>{const c=rgb(h||'#808080');return c.map(v=>Math.min(1.35,v/base));};
+  const flC=room?tint((sty.fl||[])[0],lit?.86:.37):null,wlC=room?tint((sty.wl||[])[0],lit?.86:.42):null,flCell=lit?(sty.wood?'woodfl':'tilefl'):'floor',wlCell=lit?(lv.d.area=='conserv'?'glass':'plaster'):'qwall';
+  lv.flC=flC;
   for(let y=0;y<lv.h;y++)for(let x=0;x<lv.w;x++){const c=rows[y][x],X0=x*TS,Z0=y*TS,X1=X0+TS,Z1=Z0+TS,cx=X0+TS/2,cz=Z0+TS/2,h=hash(x,y,lv.d.ax*31+lv.d.ay);
     // ground
     if(WATER.includes(c)){(c=='~'?Fm:Wm).floor(X0,Z0,X1,Z1,-.35,'white');
@@ -82,7 +92,8 @@ function buildMesh(lv){
     if(c=='='||c=='-'){M.floor(X0,Z0,X1,Z1,.06,'planks');M.box(X0+.1,-1.2,Z0+.1,X0+.4,.06,Z0+.4,'wood');
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const n=src(x+dx,y+dy);if(n&&WATER.includes(n)){const ax=dx?(dx>0?X1-.15:X0):X0,az=dy?(dy>0?Z1-.15:Z0):Z0;M.box(ax,.06,az,dx?ax+.15:X1,1,dy?az+.15:Z1,'wood');}}
       Wm.floor(X0,Z0,X1,Z1,-.35,'white');continue;}
-    M.floor(X0,Z0,X1,Z1,0,room&&!WALK.includes(c)?'floor':groundCell(lv,c,x,y));
+    if(c=='_'){M.floor(X0,Z0,X1,Z1,-3,'black');for(const [dx,dy,a,b] of [[0,-1,[X1,Z0],[X0,Z0]],[0,1,[X0,Z1],[X1,Z1]],[-1,0,[X0,Z0],[X0,Z1]],[1,0,[X1,Z1],[X1,Z0]]]){const n=src(x+dx,y+dy);if(n!='_'&&n!='|')M.wall(a[0],a[1],b[0],b[1],-3,0,wlCell,[wlC[0]*.4,wlC[1]*.4,wlC[2]*.4]);}continue;}
+    M.floor(X0,Z0,X1,Z1,0,room?flCell:groundCell(lv,c,x,y),room?(c=='E'?[.8,.8,.8]:flC):null);
     if(!room)groundDetail(M,lv,src,c,x,y,X0,Z0,X1,Z1,cx,cz,h);
     // things standing on the tile
     switch(c){
@@ -93,7 +104,8 @@ function buildMesh(lv){
         facade(M,lv,x,y,ht,bh,kind,h);if(hash(k,x,y)%9==0){const ox=X0+.5+(h%3)*.3,oz=Z0+.5+((h>>3)%3)*.3;M.box(ox,ht,oz,ox+.55,ht+1.3,oz+.45,'brick');M.box(ox-.06,ht+1.3,oz-.06,ox+.61,ht+1.42,oz+.51,'stone');}
         break;}
       case'X':case'D':{if(lmAt(lv,x,y))break;const ht=bh(x,y);M.box(X0,0,Z0,X1,ht,Z1,{top:'roof',side:room?'qwall':'stone'},null,{bottom:1},true);break;}
-      case'W':{const wh=y==lv.h-1?.8:4;M.box(X0,0,Z0,X1,wh,Z1,{top:wh<1?'qwall':'black',side:'qwall'},null,{bottom:1},wh>1);break;}
+      case'W':{const edge=x==0||y==0||x==lv.w-1||y==lv.h-1,wh=y==lv.h-1?.8:edge?(lit?3.4:4):2.2;M.box(X0,0,Z0,X1,wh,Z1,{top:wh<1||!edge?wlCell:'black',side:wlCell},wlC,{bottom:1},wh>1);
+        if(lit&&edge&&wh>1)M.box(X0-.01,wh-.2,Z0-.01,X1+.01,wh,Z1+.01,'white',[wlC[0]*.8,wlC[1]*.8,wlC[2]*.8],{bottom:1});break;}
       case'T':{const r=.95+(h%5)*.08,kind=h%5;
         M.swayV=0;if(kind<2){M.tube([cx,0,cz],[cx,1.4,cz],.2,.15,6,'bark');M.swayV=.06;M.cone(cx,.9,cz,r*1.25,2.0,r*.5,7,'leaves',null,h);M.cone(cx,1.7,cz,r*1.05,2.9,r*.3,7,'leaves',null,h+1);M.cone(cx,2.6,cz,r*.75,4.1,0,7,'leaves',null,h+2);}
         else{M.tube([cx,0,cz],[cx,1.9,cz],.2,.13,6,'bark');M.tube([cx,1.3,cz],[cx+.5,2.2,cz+.2],.09,.05,5,'bark');M.tube([cx,1.4,cz],[cx-.45,2.3,cz-.25],.09,.05,5,'bark');
@@ -116,6 +128,24 @@ function buildMesh(lv){
       case'y':M.cone(cx,0,cz,.95,.5,.95,8,'marble');Wm.disc(cx,.42,cz,.85,8,'white');M.box(cx-.1,.4,cz-.1,cx+.1,1.4,cz+.1,'marble');break;
       case'x':M.box(cx-.3,0,cz-.15,cx+.3,.9,cz+.15,'stone');break;
       case'E':M.box(X0,-.02,Z0,X1,.02,Z1,'steps');break;
+      case'U':M.box(X0,0,Z0,X1,2.4,Z1,{top:'concrete',side:'concrete'},null,{bottom:1},true);break;
+      case'e':if(comp[x+','+y]!=null){const ht=bh(x,y);for(const [dx,dy,a,b] of [[0,1,[X0,Z1],[X1,Z1]],[0,-1,[X1,Z0],[X0,Z0]],[1,0,[X1,Z1],[X1,Z0]],[-1,0,[X0,Z0],[X0,Z1]]]){const nh=bh(x+dx,y+dy);if(nh>=ht)continue;M.wall(a[0],a[1],b[0],b[1],nh,ht,'brick',null,.86,(i,j)=>j==0&&nh==0?'mural':'brickwin');}M.floor(X0,Z0,X1,Z1,ht,'roof');}
+        else M.box(X0,0,Z0,X1,2.4,Z1,{top:'concrete',side:'mural'},null,{bottom:1});break;
+      case't':M.box(cx-.4,0,cz-.4,cx+.4,.55,cz+.4,{top:'dirt',side:'stone'});M.tube([cx,.5,cz],[cx,1.5,cz],.08,.06,5,'bark');M.swayV=.05;M.sphere(cx,1.9,cz,.6,7,4,'leaves',null,.9);M.swayV=0;break;
+      case'q':M.box(cx-.25,0,cz-.2,cx+.25,1,cz+.2,{top:'white',side:'white',south:'glass'},rgb('#d83030'));break;
+      case'u':M.box(cx-.45,0,cz-.45,cx+.45,.6,cz+.45,{top:'dirt',side:'wood'});for(let k=0;k<4;k++)tuftAt(M,cx-.2+(k%2)*.4,cz-.2+(k>>1)*.4,.45,'bloom',h+k);break;
+      case'G':M.box(cx-.5,0,cz-.5,cx+.5,.6,cz+.5,'stone');M.box(cx-.3,.6,cz-.3,cx+.3,3.2,cz+.3,{top:'stone',side:'marble'},[.85,.85,.85]);M.cone(cx,3.2,cz,.42,3.8,0,4,'marble',[.85,.85,.85],.785);break;
+      case'Q':M.box(X0+.2,0,Z0+.2,X1-.2,1.2,Z1-.2,'marble');statue(M,cx,1.2,cz);break;
+      case'+':M.lathe(cx,0,cz,[[0,.22],[.15,.18],[.9,.16],[1,.24],[1.15,.24],[1.25,0]],6,'black');M.sphere(cx,1.25,cz,.12,6,3,'gold');break;
+      case'V':{const wood=!!sty.wood;M.box(X0,0,Z0+.3,X1,1.1,Z1-.3,{top:wood?'wood':'marble',side:'wood'},null,{bottom:1});M.box(X0-.02,1.1,Z0+.22,X1+.02,1.2,Z1-.22,wood?'wood':'marble');break;}
+      case'h':M.box(X0+.1,0,Z0+.5,X1-.1,.5,Z1-.3,'seat');M.box(X0+.1,.5,Z1-.45,X1-.1,1.3,Z1-.25,'seat');break;
+      case'O':if(lv.d.area=='byrd'){M.box(X0-.2,0,Z0,X1+.2,1.3,Z1,{top:'wood',side:'wood'});for(let k=0;k<6;k++)M.box(X0+k*.32-.1,1.3,Z0+.2,X0+k*.32+.05,2.3+(k%3)*.4,Z0+.35,'gold');}
+        else{M.box(X0+.25,0,Z0+.3,X1-.25,2.2,Z1-.3,{top:'black',side:'black',south:'arcade'});M.box(X0+.25,.9,Z1-.55,X1-.25,1.05,Z1-.1,'white',[.3,.3,.35]);}break;
+      case'g':M.box(cx-.4,0,cz-.4,cx+.4,.9,cz+.4,'wood');M.box(cx-.4,.9,cz-.4,cx+.4,1.8,cz+.4,{top:'case',side:'case'});M.sphere(cx,1.15,cz,.18,6,4,'gold',null,1.2);break;
+      case'Z':if(src(x-1,y)!='Z'&&src(x,y-1)!='Z'){let w=0,hh=0;while(src(x+w,y)=='Z')w++;while(src(x,y+hh)=='Z')hh++;const x1=X0+w*TS,z1=Z0+hh*TS,mz=(Z0+z1)/2;
+        M.tube([X0+.4,1.6,mz],[x1-1.4,1.6,mz],1.1,1.1,10,'engine');M.box(x1-1.8,.6,Z0+.3,x1-.1,3.6,z1-.3,{top:'black',side:'engine'});M.tube([X0+1.4,2.6,mz],[X0+1.4,3.8,mz],.3,.38,8,'black');
+        for(let k=0;k<4;k++)M.tube([X0+.9+k*1.5,.55,Z0+.2],[X0+.9+k*1.5,.55,z1-.2],.55,.55,10,'black');M.box(X0,0,Z0+.1,x1,.4,z1-.1,'black');M.box(x1-1.6,1.6,z1-.32,x1-.6,2.6,z1-.28,'white',[.9,.75,.3]);M.cone(X0+.2,.2,mz,1,1.2,.1,4,'black',null,.785);}break;
+      case'^':M.box(X0+.2,0,Z0+.2,X1-.2,.08,Z1-.2,'gold');M.box(X0+.5,.08,Z0+.5,X1-.5,.12,Z1-.5,'white',[1,.95,.6]);break;
     }
   }
   for(const L of lv.d.lm||[])landmark(M,lv,L);
@@ -168,5 +198,38 @@ function landmark(M,lv,L){const X0=L.x*TS,Z0=L.y*TS,X1=X0+L.w*TS,Z1=Z0+L.h*TS,cx
       M.cone(cx,10,Z0+1.8,1.2,14.5,0,6,'white');break;}
     case'ruins':{for(let i=0;i<L.w;i++){const hh=1+hash(i,L.y,9)%4;M.box(X0+i*TS,0,Z0+.2,X0+(i+1)*TS,hh*1.1,Z0+.9,{top:'rubble',side:'brick'},null,{bottom:1});const h2=1+hash(i,L.y,5)%3;M.box(X0+i*TS,0,Z1-.9,X0+(i+1)*TS,h2,Z1-.2,{top:'rubble',side:'brick'},null,{bottom:1});}
       M.box(X0,0,Z0+.2,X0+.7,3,Z1-.2,{top:'rubble',side:'brick'},null,{bottom:1});M.box(X1-.7,0,Z0+.2,X1,2.2,Z1-.2,{top:'rubble',side:'brick'},null,{bottom:1});M.floor(X0,Z0,X1,Z1,.02,'rubble');break;}
+    case'grandstand':{M.box(X0,0,Z0,X1,1,Z1,'concrete');for(let r=0;r<4;r++)M.box(X0+.3,1+r*.7,Z0+.2+r*.8,X1-.3,1.7+r*.7,Z1,{top:'seat',side:'concrete'},null,{bottom:1});
+      M.box(X0,0,Z0,X0+.4,5,Z1,'concrete');M.box(X1-.4,0,Z0,X1,5,Z1,'concrete');M.box(X0,4.6,Z0,X1,5,Z1,'roof');for(const x of [X0+1,X1-1])M.box(x-.1,0,Z0+.3,x+.1,9,Z0+.5,'black'),M.box(x-.8,9,Z0+.2,x+.8,10,Z0+.6,{top:'black',side:'lampglow'});break;}
+    case'store':{const col=rgb(L.c||'#c8b48c');M.box(X0,0,Z0,X1,9,Z1,{top:'roof',side:'white',south:'white'},col,{bottom:1},true);
+      for(let i=0;i<L.w;i++)for(let j=1;j<4;j++){const x=X0+i*TS+.5,y=j*2.2;M.box(x,y,Z1,x+1,y+1.3,Z1+.05,'glass');}M.box(X0,2,Z1,X1,2.35,Z1+.9,'awning');M.box(X0,8.6,Z0,X1,9.2,Z1+.3,'stone',[.9,.88,.84]);break;}
+    case'shelter':M.box(X0,2.4,Z0+.2,X1,2.6,Z1,'white',rgb('#3d63c8'));for(const x of [X0+.1,X1-.2])M.box(x,0,Z0+.3,x+.1,2.4,Z0+.4,'black');M.box(X0+.1,0,Z0+.25,X1-.1,2.3,Z0+.3,'glass');M.box(X0+.4,.5,Z0+.4,X1-.4,.6,Z0+.9,'wood');break;
+    case'hippodrome':{M.box(X0,0,Z0,X1,8,Z1,{top:'roof',side:'white'},rgb('#e8d8b0'),{bottom:1},true);M.box(X0+1,3,Z1,X1-3,4.6,Z1+1.2,{top:'black',side:'marquee'});
+      M.box(X1-3,2,Z1,X1-1.6,8.8,Z1+.6,{top:'black',side:'marquee'},rgb('#d83040'));break;}
+    case'vmfa':{M.box(X0,0,Z0,X1,1,Z1,'marble');M.box(X0+.5,1,Z0,X1-.5,7,Z1-2,{top:'roof',side:'marble'},null,{bottom:1},true);for(let i=0;i<8;i++){const x=X0+1.4+i*(L.w*TS-2.8)/7;M.cone(x,1,Z1-1,.34,6.5,.3,6,'column');}
+      M.box(X0+.5,6.5,Z1-2,X1-.5,7.3,Z1-.2,'marble');break;}
+    case'byrd':{M.box(X0,0,Z0,X1,6,Z1,{top:'roof',side:'brick'},rgb('#d89070'),{bottom:1},true);M.box(cx-.8,2,Z1,cx+.8,10,Z1+.5,{top:'black',side:'marquee'},rgb('#3d63c8'));M.box(X0+.5,2.4,Z1,X1-.5,3.4,Z1+1,{top:'black',side:'marquee'});break;}
+    case'carillon':{const cz=(Z0+Z1)/2;M.box(cx-2,0,cz-2,cx+2,1,cz+2,'stone');M.box(cx-1.6,1,cz-1.6,cx+1.6,12,cz+1.6,{top:'roof',side:'brick'},rgb('#e8c8a0'),{bottom:1},true);
+      M.box(cx-1.8,12,cz-1.8,cx+1.8,15,cz+1.8,{top:'roof',side:'bars'},rgb('#c8a078'),{bottom:1});M.box(cx-1.9,15,cz-1.9,cx+1.9,15.5,cz+1.9,'stone');M.cone(cx,15.5,cz,1.9,18,0,4,'copper',null,.785);M.lathe(cx,12.6,cz,[[0,.8],[1.3,.6],[1.8,.2]],8,'gold');break;}
+    case'mansion':{M.box(X0,0,Z0+.5,X1-2.5,6.5,Z1,{top:'roof',side:'stone'},rgb('#c8b89a'),{bottom:1},true);M.gable(X0,Z0+.5,X1-2.5,Z1,6.5,2.4,true,'roof',rgb('#a84a3a'),'stone');
+      M.lathe(X1-1.3,0,Z0+2,[[0,1.2],[8.5,1.2]],8,'stone',rgb('#c8b89a'));M.cone(X1-1.3,8.5,Z0+2,1.4,11,0,8,'roof',rgb('#a84a3a'));break;}
+    case'pyramid':{const cz=(Z0+Z1)/2;for(let k=0;k<6;k++){const r=(L.w*TS/2)*(1-k/6);M.box(cx-r,k*1.2,cz-r*.9,cx+r,(k+1)*1.2,cz+r*.9,{top:'stone',side:'stone'},[.7,.7,.72],{bottom:1});}M.cone(cx,7.2,cz,.6,8.4,0,4,'stone',null,.785);break;}
+    case'birdcage':{const cz=(Z0+Z1)/2;M.box(cx-1.3,0,cz-1.3,cx+1.3,.4,cz+1.3,'stone');M.box(cx-1.1,.4,cz-1.1,cx+1.1,3.2,cz+1.1,{top:'black',side:'bars'});M.lathe(cx,3.2,cz,[[0,1.3],[.6,.9],[1.4,0]],8,'black');M.box(cx-.5,.4,cz-.8,cx+.5,1.3,cz+.8,'stone',[.8,.8,.85]);break;}
+    case'steamboat':{const cz=(Z0+Z1)/2;M.lathe(cx,-.3,cz,[[0,.0],[.2,1],[1,1.2]],8,'white',null,L.w*TS/2.4,1);M.box(X0+1,.9,cz-1,X1-2.5,2.6,cz+1,{top:'white',side:'white'},[.95,.95,.92]);M.box(X0+1.5,2.6,cz-.8,X1-3.5,3.8,cz+.8,'white',[.9,.9,.88]);
+      for(const x of [X0+3,X0+4.4])M.tube([x,2.6,cz],[x,6,cz],.25,.25,6,'black');M.tube([X1-2.4,1,cz-1.3],[X1-2.4,1,cz+1.3],1.4,1.4,10,'white',rgb('#a82030'));break;}
+    case'stonehouse':{M.box(X0,0,Z0+1,X1,5,Z1,{top:'roof',side:'stone'},null,{bottom:1},true);M.gable(X0,Z0+1,X1,Z1,5,2.2,true,'roof',null,'stone');M.box(X0,0,Z1-.1,X1,.3,Z1+1.2,'wood');for(let i=X0+.5;i<X1;i+=2.4)M.box(i,0,Z1+1,i+.15,3,Z1+1.15,'wood');M.box(X0,3,Z1,X1,3.15,Z1+1.2,'wood');break;}
+    case'trolley':{const cz=(Z0+Z1)/2;M.box(X0,.4,cz-.8,X1,2.4,cz+.8,{top:'white',side:'glass'},rgb('#2e7d4f'));M.box(X0-.1,.4,cz-.85,X1+.1,1.2,cz+.85,'white',rgb('#2e7d4f'));M.box(X0,2.4,cz-.9,X1,2.6,cz+.9,'white',rgb('#f2c14e'));break;}
+    case'scimuseum':{M.box(X0,0,Z0+.5,X1,6,Z1,{top:'roof',side:'marble'},rgb('#e4dcc8'),{bottom:1},true);M.sphere(cx,6,(Z0+Z1)/2,L.w*TS*.28,10,5,'copper',null,1,1,1,.5,1);for(let i=0;i<5;i++){const x=X0+2+i*(L.w*TS-4)/4;M.cone(x,0,Z1-.6,.35,5.5,.3,6,'column');}break;}
+    case'vmhc':{M.box(X0,0,Z0,X1,7,Z1-1.6,{top:'roof',side:'marble'},null,{bottom:1},true);M.gable(X0,Z0,X1,Z1-.2,7,2,true,'roof',null,'marble');for(let i=0;i<6;i++){const x=X0+1.5+i*(L.w*TS-3)/5;M.cone(x,0,Z1-.8,.33,7,.3,6,'column');}break;}
+    case'sauers':{M.box(X0,0,Z0+1,X1,5,Z1,{top:'roof',side:'brickwin'},null,{bottom:1},true);M.box(X0+.5,5,Z0+1.6,X1-.5,9,Z0+1.9,{top:'black',side:'marquee'},rgb('#f8c060'));for(const x of [X0+1,X1-1])M.box(x,5,Z0+1.4,x+.1,9,Z0+1.6,'black');break;}
+    case'ashecenter':{M.floor(X0,Z0,X1,Z1,.02,'white',rgb('#3a8ac8'));M.box(X0+1,0,(Z0+Z1)/2-.05,X1-1,1,(Z0+Z1)/2+.05,{top:'white',side:'fence'});for(const [a,b,c2,d2] of [[X0,Z0,X1,Z0+.1],[X0,Z1-.1,X1,Z1],[X0,Z0,X0+.1,Z1],[X1-.1,Z0,X1,Z1]])M.box(a,0,b,c2,3,d2,{top:'black',side:'fence'});break;}
+    case'speedway':{M.floor(X0,Z0,X1,Z1,.03,'cobble',[.4,.4,.44]);M.lathe(cx,0,(Z0+Z1)/2,[[0,L.h*TS*.32],[.05,L.h*TS*.32]],12,'grass',null,L.w/L.h*1.1,1,true);
+      for(let r=0;r<5;r++)M.box(X0,r*.9,Z0-.2+r*.7,X1,r*.9+.9,Z0+.6+r*.7,{top:'seat',side:'concrete'});break;}
+    case'agecroft':{M.box(X0,0,Z0+.5,X1,5.5,Z1,{top:'roof',side:'clap'},rgb('#f0e4c8'),{bottom:1},true);for(let i=X0;i<=X1;i+=1.2)M.box(i,0,Z1,i+.18,5.5,Z1+.04,'wood');for(const y of [1.8,3.6])M.box(X0,y,Z1,X1,y+.18,Z1+.04,'wood');
+      for(const x of [X0+2,cx,X1-2])M.gable(x-1.6,Z0+.5,x+1.6,Z1,5.5,3,false,'roof',rgb('#6a3a2a'),'clap');M.box(X1-2,5,Z0+1,X1-1.3,8.5,Z0+1.7,'brick');break;}
+    case'siegel':{M.box(X0,0,Z0,X1,6,Z1,{top:'roof',side:'concrete'},rgb('#5a5a66'),{bottom:1},true);M.lathe(cx,6,(Z0+Z1)/2,[[0,L.w*TS*.45],[1.6,L.w*TS*.32],[2.2,0]],10,'roof',null,1,.55);M.box(X0+1,4,Z1,X1-1,5,Z1+.1,'white',rgb('#f2c14e'));break;}
+    case'marshall':{M.box(X0,0,Z0,X1,7,Z1,{top:'roof',side:'brickwin'},null,{bottom:1},true);M.gable(X0,Z0,X1,Z1,7,2.4,true,'roof',null,'brick');for(const x of [X0+.6,X1-1.2])M.box(x,7,Z0+.8,x+.6,10,Z0+1.4,'brick');break;}
+    case'sallybell':{M.box(X0,0,Z0,X1,4.5,Z1,{top:'roof',side:'storefront'},null,{bottom:1},true);M.box(X0,2.6,Z1,X1,3.4,Z1+.15,{top:'black',side:'marquee'},rgb('#fff0e0'));break;}
+    case'armory':{M.box(X0,0,Z0,X1,6,Z1,{top:'roof',side:'brick'},null,{bottom:1},true);for(let i=X0;i<X1;i+=1.2)M.box(i,6,Z0,i+.7,6.8,Z1,'brick');M.box(cx-1.6,0,Z1-.6,cx+1.6,9,Z1+.4,{top:'roof',side:'brick'});for(let i=cx-1.6;i<cx+1.6;i+=.8)M.box(i,9,Z1-.6,i+.5,9.6,Z1+.4,'brick');break;}
+    case'stage':{M.box(X0,0,Z0,X1,1.2,Z1,'wood');for(const x of [X0+.2,X1-.4])M.box(x,1.2,Z0+.2,x+.2,5,Z0+.4,'black');M.box(X0,5,Z0,X1,5.4,Z0+1.4,'black');M.box(X0+.3,1.2,Z0+.1,X1-.3,5,Z0+.3,'white',[.15,.1,.25]);break;}
     default:M.box(X0,0,Z0,X1,4,Z1,{top:'roof',side:'stone'},null,{bottom:1},true);
   }}

@@ -5,7 +5,7 @@
 const TS=2;
 const CELLS=['grass','grass2','flowers','dirt','sand','cobble','sidewalk','steps','rails','planks','brick','brickwin','brickwin2','storefront','roof','stone',
   'stonewall','marble','column','white','door','doorlit','bark','leaves','leaves2','rock','fence','floor','qwall','rubble','sign','gold','glass','wood','black','clock',
-  'copper','chest','face','eyes','awning','awning2','sign2','grille','tuft','bloom','worn','pigeon','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
+  'copper','chest','face','eyes','awning','awning2','sign2','grille','tuft','bloom','worn','pigeon','tilefl','woodfl','plaster','mural','bars','vine','marquee','seat','arcade','engine','concrete','case','hair','shell','lock','crack','tin','clap','clap2','water','foam','keystone','paper','lampglow','sky'];
 const CELL={};CELLS.forEach((n,i)=>CELL[n]=i);
 const ATLAS_N=16,ATLAS_PX=32;
 function cellUV(name){const i=CELL[name]==null?CELL.white:CELL[name],cx=i%ATLAS_N,cy=(i/ATLAS_N)|0,e=.5/(ATLAS_N*ATLAS_PX),s=1/ATLAS_N;

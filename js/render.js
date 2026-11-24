@@ -86,6 +86,7 @@ function envLook(){const dk=dark();if(lv.room)return{fog:[10,30],fogCol:[.03,.03
 function lightsNow(){const L=[],dk=lv.room?1:dark();
   if(st.items.lantern&&(dk>.3||lv.room))L.push([p.x,2,p.z,lv.room?11:9,[1,.78,.45].map(v=>v*(p.raise>0?1.3:.9))]);
   for(const b of bombs)if(b.t<20)L.push([b.x,1,b.z,8,[1,.6,.2]]);
+  for(const o of lv.dyn)if(o.kind=='brazier'&&o.lit)L.push([o.tx*TS+TS/2,2,o.ty*TS+TS/2,9,[1,.6,.25]]);
   if(dk>.2){const gl=lv.glows.filter(g=>lampLit(g)).map(g=>[g,Math.hypot(g[0]-p.x,g[2]-p.z)]).sort((a,b)=>a[1]-b[1]).slice(0,6);for(const [g] of gl)L.push([g[0],g[1]-.5,g[2],8,[1,.82,.5].map(v=>v*dk)]);}
   return L;}
 function lampLit(g){const L=lv.lamps.find(l=>l.tx==g[3]&&l.ty==g[4]);return!L||L.lit;}
@@ -115,11 +116,17 @@ function drawEntities(){
     if(p.swing>0)ex.armR={x:-1.5,y:1.6-sw*3.4};if(p.raise>0){ex.armL={x:-2.6};p.raise--;}if(p.hold>0){ex.armL={x:-2.9};ex.armR={x:-2.9};}
     let base=M4.mul(M4.tr(p.x,0,p.z),M4.ry(p.yaw));if(deathT>0)base=M4.mul(base,M4.rx(-Math.min(1.5,(90-deathT)/20)));
     if(!p.moving&&!ex.armR&&!ex.armL){ex.body={t:[0,Math.sin(frame*.05)*.008,0]};ex.head={y:Math.sin(frame*.011)*.25};}
+    if(tAt(p.x,p.z)=='~'){base=M4.mul(M4.tr(0,-.35,0),base);const k=getModel('kayak',()=>propModel('kayak'));drawModel(k,M4.mul(M4.mul(M4.tr(p.x,-.15,p.z),M4.ry(p.yaw)),M4.rx(Math.PI/2)));ex.legL={x:-1.4};ex.legR={x:-1.4};}
     shadowAt(p.x,p.z);drawModel(P,base,humanPose(p.walk,p.moving,ex));
     if(st.items.lantern&&(st.eq=='lantern'||dark()>.3||lv.room)){const L=getModel('lanternProp',()=>[part(m=>{m.box(-.12,-.3,-.12,.12,0,.12,{top:'black',side:'glass'});m.box(-.03,0,-.03,.03,.12,.03,'black');},[0,0,0])]);
       const arm=p.raise>0||p.hold>0?M4.mul(M4.tr(-.37,1.5,0),M4.rx(-2.6)):M4.mul(M4.tr(-.37,1.5,0),M4.rx(p.moving?-Math.sin(p.walk)*.56:0));drawModel(L,M4.mul(M4.mul(base,arm),M4.tr(0,-.75,0)),null,{tint:[1.4,1.3,1.1]});}
-    if(p.hold>0&&p.holdIc){const k=p.holdIc=='keystone'?'keystone':p.holdIc=='key'?'key':p.holdIc=='lantern'?'lanternProp':p.holdIc=='powder'?'bomb':'coin';
+    if(p.hold>0&&p.holdIc){const HM={keystone:'keystone',key:'key',lantern:'lanternProp',powder:'bomb',ball:'ballpk',balls:'ballpk',heart:'container',hc:'container',piece:'piece',part:'part',bib:'bib',bug:'bug',hook:'hookhead',kayak:'kayak',melon:'melonpk',coins50:'coin',coins20:'coin',shield:'block',can:'sprout',shoes:'bib',music:'bib',map:'bib'},k=HM[p.holdIc]||'coin';
       const im=getModel(k,()=>propModel(k));if(im&&im.length)drawModel(im,M4.mul(M4.tr(p.x,2.6+Math.sin(frame*.1)*.08,p.z),M4.ry(frame*.05)));}}
+  if(hook){const hm=getModel('hookhead',()=>propModel('hookhead'));drawModel(hm,M4.mul(M4.tr(hook.x,1.2,hook.z),M4.ry(Math.atan2(hook.dx,hook.dz))));
+    const ch=new Mesh();ch.tube([p.x,1.2,p.z],[hook.x,1.2,hook.z],.03,.03,4,'black');upload(dynBuf,ch);drawVAO(dynBuf);}
+  if(bug){const bm=getModel('bug',()=>propModel('bug'));drawModel(bm,M4.mul(M4.tr(bug.x,1.2+Math.sin(frame*.4)*.1,bug.z),M4.ry(frame*.3)));for(const k of bug.carry){const m=getModel(k.kind,()=>propModel(k.kind));if(m.length)drawModel(m,M4.tr(k.x,.9,k.z));}}
+  for(const s2 of shots){const m=getModel('shot',()=>propModel('shot')),col=s2.refl?[1,1,.6]:{ball:[1,1,1],orb:[.8,.5,1],feather:[.2,.2,.3],ring:[1,.75,.35],spark:[1,.6,.2],seed:[.5,.85,.4],blood:[.9,.1,.2]}[s2.k]||[1,1,1];
+    drawModel(m,M4.mul(M4.tr(s2.x,s2.y,s2.z),M4.sc(s2.k=='ball'?.6:1)),null,{tint:col.map(v=>v*1.3)});}
   for(const b of birds){if(b.state=='gone')continue;const m=getModel('pigeon',pigeonModel),fl=b.state=='fly',pk=!fl&&(b.t%60)<12;if(!fl)shadowAt(b.x,b.z,.3);
     drawModel(m,M4.mul(M4.tr(b.x,b.y,b.z),M4.mul(M4.ry(b.yaw),M4.rx(pk?.5:fl?-.25:0))),fl?{wingL:{z:Math.sin(b.flap)*1.1},wingR:{z:-Math.sin(b.flap)*1.1}}:{wingL:{z:-.2},wingR:{z:.2}});}
   for(const n of npcs){shadowAt(n.x,n.z);const mv=n.wander&&!(n.look>0),talking=dlg&&dlg.who==n.who,ex=mv?{}:{body:{t:[Math.sin(n.t*.021+n.i)*.025,Math.sin(n.t*.05)*.008,0],z:Math.sin(n.t*.021+n.i)*.02},armL:{x:Math.sin(n.t*.03)*.06,z:-.12},armR:{x:-Math.sin(n.t*.03)*.06,z:.12}};
@@ -130,8 +137,12 @@ function drawEntities(){
     if(t=='rat')pose.tail={y:Math.sin(e.t*.3)*.5};if(t=='bat'){pose.wingL={z:Math.sin(e.t*.5)*.8};pose.wingR={z:-Math.sin(e.t*.5)*.8};}if(t=='goose')pose.neck={x:Math.sin(e.t*.1)*.3};
     if(t=='crab'){pose.clawL={x:Math.sin(e.t*.2)*.4};pose.clawR={x:-Math.sin(e.t*.2)*.4};}
     if(t=='turtle'){base=M4.mul(base,M4.sc(1.25));if(e.state=='stun')base=M4.mul(M4.mul(base,M4.tr(0,1.4,0)),M4.rz(Math.PI));pose.head={t:[0,0,e.state=='stun'?-.6:0]};if(e.state=='wind')base=M4.mul(base,M4.tr(Math.sin(e.st)*.08,0,0));}
+    if(t=='vampire'&&e.gone)continue;if(t=='raven'){pose.wingL={z:Math.sin(e.t*.3)*.7};pose.wingR={z:-Math.sin(e.t*.3)*.7};}if(t=='squirrel')pose.tail={x:Math.sin(e.t*.2)*.3};
+    if(t=='bell'&&e.state=='stun')base=M4.mul(base,M4.rz(Math.sin(e.st*.6)*.15*Math.max(0,1-e.st/40)));if(t=='arum'&&e.state=='bloom')base=M4.mul(base,M4.sc(1.15));
+    if(t=='foreman'&&e.state=='wind')base=M4.mul(base,M4.tr(0,Math.sin(e.st*.5)*.1,0));if(e.stun>0&&!e.boss)base=M4.mul(base,M4.rz(Math.sin(frame*.5)*.2));
     if(e.dead)base=M4.mul(base,M4.sc(Math.max(.01,e.fade/40)));
-    if(t!='bat'&&t!='ghost')shadowAt(e.x,e.z,t=='turtle'?2.6:.9);drawModel(m,base,pose,e.flash>0&&(e.flash>>1)&1?{flash:.8}:null);}
+    if(t=='wraith'&&e.vis<=0){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.uniform1f(U.uAlpha,.18+.1*Math.sin(frame*.2));drawModel(m,base,pose);gl.uniform1f(U.uAlpha,1);gl.disable(gl.BLEND);continue;}
+    if(!EDEF[t]||!EDEF[t].fly||t=='bell')shadowAt(e.x,e.z,t=='turtle'||t=='bell'||t=='arum'?2.6:t=='foreman'?1.6:.9);else shadowAt(e.x,e.z,.6);drawModel(m,base,pose,e.flash>0&&(e.flash>>1)&1?{flash:.8}:null);}
   for(const c of chests){if(!chestVisible(c))continue;const m=getModel('chest',()=>propModel('chest'));drawModel(m,M4.tr(c.x,0,c.z),{lid:{x:c.open?-1.9:0}});}
   for(const k of picks){const m=getModel(k.kind,()=>propModel(k.kind));if(!m.length)continue;if(k.life<120&&(frame>>2)&1)continue;shadowAt(k.x,k.z,.5);drawModel(m,M4.mul(M4.tr(k.x,k.y+Math.sin(k.t*.08)*.1,k.z),M4.ry(k.t*.06)));}
   for(const b of bombs){const m=getModel('bomb',()=>propModel('bomb'));drawModel(m,M4.mul(M4.tr(b.x,0,b.z),M4.sc(1+(b.t<30?Math.sin(b.t)*.08:0))),null,b.t<40&&(b.t>>2)&1?{flash:.6}:null);}
@@ -139,10 +150,16 @@ function drawEntities(){
     if(o.kind=='lock'){const [a,b2]=o.cells[0],[c2,d2]=o.cells[o.cells.length-1],horiz=b2==d2;base=M4.mul(M4.tr(((a+c2)/2+.5)*TS,0,((b2+d2)/2+.5)*TS),horiz?M4.mul(M4.ry(0),M4.sc(1)):M4.ry(Math.PI/2));
       if(horiz)base=M4.mul(base,[2,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);drawModel(m,base);}
     else if(o.kind=='crack'){for(const [a,b2] of o.cells)drawModel(m,M4.tr(a*TS+TS/2,0,b2*TS+TS/2));}
-    else drawModel(m,M4.tr(o.tx*TS+TS/2,0,o.ty*TS+TS/2));}}
+    else if(o.kind=='gate'){for(const [a,b2] of o.cells){const ed=b2==0||b2==lv.h-1;drawModel(m,M4.mul(M4.tr(a*TS+TS/2,0,b2*TS+TS/2),ed?M4.id():M4.ry(Math.PI/2)));}}
+    else if(o.kind=='block'){const k=o.mv?o.mv/12:0,x=(o.tx+(o.fx-o.tx)*k)*TS+TS/2,z=(o.ty+(o.fy-o.ty)*k)*TS+TS/2;drawModel(m,M4.tr(x,0,z),null,lv.d.rows[o.ty][o.tx]=='^'&&!o.mv?{tint:[1.15,1.1,.8]}:null);}
+    else drawModel(m,M4.tr(o.tx*TS+TS/2,0,o.ty*TS+TS/2));}
+  for(const o of lv.dyn){if(o.kind=='brazier'){const m=getModel('brazier',()=>propModel('brazier'));drawModel(m,M4.tr(o.tx*TS+TS/2,0,o.ty*TS+TS/2));}
+    if(o.kind=='sprout'&&o.grown){const m=getModel('grown',()=>propModel('grown'));drawModel(m,M4.tr(o.tx*TS+TS/2,0,o.ty*TS+TS/2));
+      if(!o.vm){o.vm=new Mesh();for(const [vx,vy] of o.vines){const X0=vx*TS,Z0=vy*TS;o.vm.box(X0,-.15,Z0+.2,X0+TS,.05,Z0+TS-.2,{top:'vine',side:'vine'});o.vm.box(X0,-.15,Z0+.05,X0+TS,.3,Z0+.2,'vine');o.vm.box(X0,-.15,Z0+TS-.2,X0+TS,.3,Z0+TS-.05,'vine');}}drawVAO(meshGL(o.vm));}}}
 function drawBillboards(env){const m=new Mesh(),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);
   const bb=(x,y,z,s,cell,col)=>m.quad([x-rx*s,y-s,z-rz*s],[x+rx*s,y-s,z+rz*s],[x+rx*s,y+s,z+rz*s],[x-rx*s,y+s,z-rz*s],cell,col);
   for(const q of parts)bb(q.x,q.y,q.z,.09,'white',rgb(q.c));
+  for(const o of lv.dyn)if(o.kind=='brazier'&&o.lit)for(let k=0;k<3;k++){const f=Math.sin(frame*.3+k*2)*.08;bb(o.tx*TS+TS/2+f,1.55+k*.18+Math.abs(f),o.ty*TS+TS/2,.22-k*.05,'white',[1,.55+k*.18,.15+k*.1]);}
   gl.uniform1f(U.uSnap,1);upload(dynBuf,m);drawVAO(dynBuf);
   const g=new Mesh(),dk=lv.room?.6:dark();
   if(dk>.15)for(const gg of lv.glows)if(lampLit(gg)){const s=1.3,[x,y,z]=gg;g.quad([x-rx*s,y-s,z-rz*s],[x+rx*s,y-s,z+rz*s],[x+rx*s,y+s,z+rz*s],[x-rx*s,y+s,z-rz*s],'lampglow',[dk,dk,dk]);}

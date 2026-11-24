@@ -2,33 +2,38 @@
 
 **Play it: https://doodersrage.github.io/river-city-quest-3d/**
 
-A low-poly, PS1-style take on [River City Quest](https://github.com/doodersrage/river-city-quest), the Zelda-like adventure set in Richmond, Virginia. A cold fog has rolled up off the James and the gas lamps are going dark. The archivist at the Capitol needs four keystones to open the old Church Hill Tunnel, and the first one is somewhere in the Belle Isle Quarry.
+A low-poly, PS1-style take on [River City Quest](https://github.com/doodersrage/river-city-quest), the Zelda-like adventure set in Richmond, Virginia. A cold fog has rolled up off the James and the gas lamps are going dark. The archivist at the Capitol needs four keystones to open the old Church Hill Tunnel, where something is waiting under the hill.
 
-This first build is a playable slice: four neighborhoods, the quarry dungeon and its boss, and the start of the story.
+The whole story is here, from the first lantern to the tunnel finale: all 24 neighborhoods, 55 buildings and dungeon rooms, seven bosses and every item.
 
 | | |
 |---|---|
-| ![Title](screenshots/title.png) | ![Shockoe Bottom](screenshots/shockoe.png) |
+| ![Title](screenshots/title.png) | ![Carytown](screenshots/carytown.png) |
+| ![The Pyramid Wraith](screenshots/pyramid-wraith.png) | ![The Titan Arum](screenshots/titan-arum.png) |
+| ![Paddling the James](screenshots/kayak.png) | ![The Hall of Lamps](screenshots/hall-of-lamps.png) |
+| ![The Great Bell](screenshots/great-bell.png) | ![The bus map](screenshots/bus-map.png) |
 | ![Church Hill](screenshots/church-hill.png) | ![Church Hill at night](screenshots/night.png) |
-| ![Old Snapper](screenshots/old-snapper.png) | ![The map](screenshots/map.png) |
-| ![A Shockoe street](screenshots/shockoe-street.png) | ![Shockoe Bottom](screenshots/shockoe.png) |
-| ![The reenactor and Rory](screenshots/people.png) | ![Rats, geese, crabs and bats](screenshots/creatures.png) |
+| ![Byrd Park](screenshots/byrd-park.png) | ![Old Snapper](screenshots/old-snapper.png) |
+| ![A Shockoe street](screenshots/shockoe-street.png) | ![Rats, geese, crabs and bats](screenshots/creatures.png) |
 
 ## What's in it
 
-- **Four neighborhoods in 3D:** Capitol Square, Shockoe Bottom, Church Hill and Belle Isle, built tile for tile from the 2D game's maps. Brick rows become buildings, trees and rocks stand up, the James runs between them, and you walk from one neighborhood into the next.
-- **Detailed streets:** brick buildings with window sills and lintels, cornices with brackets, chimneys, striped shop awnings, rowhouse doors with stoops and cast-iron balconies, plus fire hydrants, trash cans, newspaper boxes, mailboxes, street signs and parked cars. Sidewalks have curbs and gutters, grass has tufts and worn patches, and flower beds bloom.
-- **A living river and town:** rocks break the surface of the James with foam around them and along the banks, the water rolls, and at night the moon and the gas lamps shimmer on it. Trees sway, people shift their weight and nod while they talk, and pigeons scatter when you walk up.
-- **Landmarks:** the Capitol's portico, the old bell tower, Main Street Station's clock tower, the 17th Street Market shed, St. John's Church and the power plant ruins on Belle Isle.
-- **The Belle Isle Quarry:** four rooms with a small key, a locked door, blasting powder, a cracked wall and Old Snapper, a giant turtle you have to trick into charging a wall.
-- **A third-person camera** that trails behind you like late-90s 3D adventures. Swing it with a drag, the right stick or Q and E. In the quarry it holds a fixed angle over each room.
-- **People and stories:** everyone from the 2D slice is here with their lines, and every historical marker goes into your journal. People are rounded low-poly figures with faces, hair and hats, and dress for their part: the archivist's glasses and book, the reenactor's tricorn and coat, the lamplighter's pole, the kayaker's helmet and life vest.
-- **Four neighborhood challenges:** light Church Hill's gas lamps, clear the market rats, clean up Belle Isle and take the history quiz.
-- **Day and night:** a full day passes about every ten minutes. At night the fog closes in, the gas lamps glow, your lantern lights the way and ghosts come out.
+- **All of Richmond in 3D:** 24 neighborhoods, built tile for tile from the 2D game, from Scott's Addition and Carytown to Manchester, Bryan Park, Chimborazo and the Richmond Raceway. Walk from one into the next, or ride the GRTC bus between any two you've visited.
+- **Landmarks:** the Capitol, Main Street Station, the 17th Street Market, St. John's Church, the Carillon, Maymont, the Hollywood Cemetery pyramid, VMFA, the Byrd Theatre, the Science Museum, Agecroft Hall, the Siegel Center, Engine 231 and more.
+- **Buildings you can walk into:** museums, theaters, a bank, a tea room, a taproom, an arcade, an art studio, rowhouses and the Carytown shop, each with its own people and stories.
+- **Seven dungeons and seven bosses:** the Belle Isle Quarry and Old Snapper, the Hollywood pyramid and its wraith, the Poe Museum and the Raven, the Carillon and the Great Bell, Tredegar and the Iron Foreman, the Conservatory and the Titan Arum, and the Church Hill Tunnel finale.
+- **Puzzles:** small keys and locked doors, cracked walls for blasting powder, braziers to light with the lantern, blocks to push onto floor switches, sprouts that grow vine bridges, and posts to grapple across pits.
+- **Every item:** the gas lantern, baseballs, blasting powder, the Gold-Bug, running shoes, the grappling hook, the watering can, a bottle of ginger beer that saves you when you fall, the cast-iron shield, heart pieces, and a kayak that crosses the whitewater on the James.
+- **The trade chain, the shop and challenges:** swap your way from the market to a kayak, spend coins at Carytown Goods, and win pins from people all over town. Collect all of them and your paddle turns gold.
+- **Detailed streets:** brick buildings with sills, cornices, awnings, stoops and balconies, plus hydrants, newspaper boxes, signs and parked cars. Rocks break the James with foam, trees sway, people nod while they talk, and pigeons scatter when you walk up.
+- **A third-person camera** that trails behind you like late-90s 3D adventures. Swing it with a drag, the right stick or Q and E. Indoors it holds a fixed angle over each room.
+- **Day and night:** a full day passes about every ten minutes. At night the fog closes in, the gas lamps glow and ghosts come out.
 - **The PS1 look, done by hand:** everything renders at 320x240, vertices snap to that pixel grid so they wobble, textures warp without perspective correction, colors are dithered down to 15 bits, and fog hides the short draw distance. There's no 3D library: it's plain WebGL 2.
 - **Sound:** synthesized effects and soft looping music washed in reverb.
 - **Phones:** a touch stick, A, B, ITEM and MENU buttons, and drag on the right side of the screen to turn the camera. Portrait and landscape both work.
 - **Saves** to your browser, and the game works offline once it's loaded.
+
+Still to come from the 2D game: the mini-games (batting cages, pinball, the derby, hoops, tennis and the raceway), food and the market, the dog, fishing, rain, fireflies and festivals.
 
 ## Controls
 
@@ -45,12 +50,13 @@ This first build is a playable slice: four neighborhoods, the quarry dungeon and
 
 Plain JavaScript and WebGL 2, no build step and no libraries. The scripts load in order from `index.html` and share one global scope.
 
-- `js/data.js`: the places, people, stories and quarry rooms, imported from the 2D game by `tools/import-2d.js`. Don't edit it by hand.
+- `js/data.js`: the places, people, stories, buildings and dungeons, imported from the 2D game by `tools/import-2d.js`. Don't edit it by hand.
 - `js/mesh.js`: geometry helpers and the texture atlas layout
 - `js/tex.js`: the 32x32 textures, painted in code at startup
 - `js/level.js`: turns a 2D tile map into a 3D place
 - `js/models.js`: low-poly people, creatures and props
 - `js/game.js`: the game itself, with no drawing in it
+- `js/talk.js`: what everyone says
 - `js/render.js`: the PS1-style WebGL renderer
 - `js/hud.js`: hearts, dialog windows, the pause menu and the title
 - `js/input.js`, `js/audio.js`, `js/main.js`: controls, sound and the frame loop
@@ -67,4 +73,4 @@ node tools/import-2d.js ../river-city-quest
 node tests/run.js
 ```
 
-The tests load the game into Node without a screen. `playthrough.test.js` has a bot play the whole slice: get the lantern, walk to Belle Isle, clear the quarry, unlock the door, blow the wall, beat Old Snapper and bring the keystone home. `features.test.js` covers markers, all four challenges, bushes, nighttime, dying and the menu. GitHub Actions runs them on every push.
+The tests load the game into Node without a screen. `playthrough.test.js` has a bot play the opening: get the lantern, walk to Belle Isle, clear the quarry, unlock the door, blow the wall, beat Old Snapper and bring the keystone home. `dungeons.test.js` checks that every door goes somewhere, every dungeon room connects to its entrance, and a bot beats all seven bosses through to the credits. `puzzles.test.js` uses each item on the puzzle it's for. `features.test.js` covers markers, all four challenges, bushes, nighttime, dying and the menu. GitHub Actions runs them on every push.

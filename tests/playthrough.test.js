@@ -1,4 +1,4 @@
-// A bot plays the whole slice: lantern, Belle Isle, the quarry, Old Snapper, and back to the archivist.
+// A bot plays the opening: lantern, Belle Isle, the quarry, Old Snapper, and back to the archivist.
 const G=require('./harness.js'),T=G.TS;const ok=(c,m)=>{console.log((c?'PASS ':'FAIL ')+m);if(!c)process.exitCode=1;};
 const I=G.inp,clr=()=>{I.a=I.b=I.item=I.menu=I.start=I.up=I.down=I.left=I.right=0;};
 const step=(o,n)=>{for(let i=0;i<(n||1);i++){clr();I.x=I.z=0;Object.assign(I,o||{});G.update();}clr();I.x=I.z=0;};
@@ -15,8 +15,8 @@ const ar=G.npcs.find(n=>n.talk=='archivist');G.p.x=ar.x;G.p.z=ar.z+1.6;face(ar.x
 ok(G.goalScene()=='ow:2,2','the map points to Belle Isle');
 // walk south off the map onto Belle Isle
 G.p.x=16*T;G.p.z=20*T;settle();walkTo(16*T,22*T+2,300);settle();ok(G.lv.id=='ow:2,2','walk south from Capitol Square onto Belle Isle');
-// edges to places not built yet just turn you back
-G.loadScene('ow:2,1',1,10*T+1,0);settle();walkTo(-1,10*T+1,120);settle();ok(G.lv.id=='ow:2,1'&&/coming in a future update/.test(G.toastMsg),'west of Capitol Square: "'+G.toastMsg+'"');
+// every edge leads somewhere now
+G.loadScene('ow:2,1',1,10*T+1,0);settle();walkTo(-1,10*T+1,120);settle();ok(G.lv.id=='ow:1,1','west of Capitol Square is '+G.lv.d.name);
 // into the quarry
 G.loadScene('ow:2,2',19*T+T/2,6*T+T/2,Math.PI);settle();walkTo(19*T+T/2,5*T+.2,200);settle();ok(G.lv.id=='quarry:0,1','bump the quarry door to go in');
 ok(G.lv.g[0][7]=='L','the north door is locked');
@@ -35,6 +35,6 @@ ok(b.dead,'Old Snapper is beaten ('+swings+' hits while stunned)');talkThrough()
 const ks=G.picks.find(k=>k.kind=='keystone');G.p.inv=0;if(ks){G.p.x=ks.x;G.p.z=ks.z;step({},15);}talkThrough();ok(G.st.got.granite,'the granite keystone');
 ok(G.lv.g[8][7]=='E','the way out opens');G.p.x=7.5*T;G.p.z=8.5*T;step({},100);settle();ok(G.lv.id=='ow:2,2','the stairs lead back up to Belle Isle');
 // back to the archivist
-G.loadScene('ow:2,1',15*T,9*T,0);settle();const a2=G.npcs.find(n=>n.talk=='archivist');G.p.x=a2.x;G.p.z=a2.z+1.6;step({},25);face(a2.x,a2.z);step({a:1});talkThrough();ok(G.mode=='end'&&G.st.f.sliceDone,'the archivist wraps up the slice');
+G.loadScene('ow:2,1',15*T,9*T,0);settle();const a2=G.npcs.find(n=>n.talk=='archivist');G.p.x=a2.x;G.p.z=a2.z+1.6;step({},25);face(a2.x,a2.z);step({a:1});talkThrough();ok(G.mode=='play'&&G.goalScene()!='ow:2,2','the archivist sends you on to '+G.goalScene()+': '+G.goalText());
 // saving and loading
 G.saveGame();const s=G.loadSave();ok(s&&s.got.granite&&s.items.powder,'progress is saved');

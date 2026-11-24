@@ -22,7 +22,7 @@ function sfx(k){if(!ac)return;const t=ac.currentTime;switch(k){
   case'no':tone(150,.15,'square',.08);break;case'go':[523,784,1047].forEach((f,i)=>tone(f,.15,'square',.07,null,t+i*.08));break;
   case'cut':noise(.15,.2,4000);break;case'drop':tone(220,.08,'triangle',.1);break;case'boom':noise(.8,.5,700);tone(80,.6,'sine',.3,null,null,30);break;
   case'clank':tone(1400,.15,'square',.08);tone(1900,.2,'triangle',.06);break;case'growl':tone(90,.6,'sawtooth',.12,null,null,60);break;
-  case'flap':for(let i=0;i<6;i++)noise(.05,.12,2500,t+i*.06);break;case'lantern':tone(600,.2,'sine',.06,null,null,900);break;case'light':tone(784,.1,'triangle',.08);tone(1175,.3,'triangle',.08,null,t+.08);break;}}
+  case'throw':tone(700,.06,'triangle',.06,null,null,400);break;case'bug':tone(1400,.15,'square',.03,null,null,1800);break;case'hook':tone(900,.12,'square',.05,null,null,1500);break;case'dash':noise(.2,.15,1500);tone(300,.15,'sawtooth',.04,null,null,600);break;case'splash':noise(.3,.12,3000);break;case'push':tone(110,.15,'square',.05);noise(.15,.1,500);break;case'shoot':tone(520,.08,'triangle',.04,null,null,300);break;case'bell':tone(330,1.4,'triangle',.12);tone(495,1.2,'sine',.06);break;case'organ':[392,494,587,784].forEach((f,i)=>tone(f,.6,'triangle',.05,null,t+i*.05));break;case'flap':for(let i=0;i<6;i++)noise(.05,.12,2500,t+i*.06);break;case'lantern':tone(600,.2,'sine',.06,null,null,900);break;case'light':tone(784,.1,'triangle',.08);tone(1175,.3,'triangle',.08,null,t+.08);break;}}
 const SONGS={
   city:{bpm:84,ch:[[57,60,64,67],[53,57,60,64],[55,59,62,67],[52,55,59,64]],arp:'triangle',lv:.05},
   night:{bpm:66,ch:[[50,53,57,60],[46,50,53,57],[48,52,55,59],[45,48,52,55]],arp:'sine',lv:.045},
