@@ -15,6 +15,10 @@ The whole story is here, from the first lantern to the tunnel finale: all 24 nei
 | ![Church Hill](screenshots/church-hill.png) | ![Church Hill at night](screenshots/night.png) |
 | ![Byrd Park](screenshots/byrd-park.png) | ![Old Snapper](screenshots/old-snapper.png) |
 | ![A Shockoe street](screenshots/shockoe-street.png) | ![Rats, geese, crabs and bats](screenshots/creatures.png) |
+| ![Batting practice](screenshots/batting.png) | ![The Libby Hill soapbox derby](screenshots/soapbox-derby.png) |
+| ![Richmond Raceway](screenshots/raceway.png) | ![Pinball at the Stone House](screenshots/pinball.png) |
+| ![A dog in Byrd Park in the fall](screenshots/fall-dog.png) | ![Rain in Shockoe Bottom](screenshots/rain.png) |
+| ![Fishing off Belle Isle](screenshots/fishing.png) | ![Free throws at the Siegel Center](screenshots/free-throws.png) |
 
 ## What's in it
 
@@ -33,7 +37,12 @@ The whole story is here, from the first lantern to the tunnel finale: all 24 nei
 - **Phones:** a touch stick, A, B, ITEM and MENU buttons, and drag on the right side of the screen to turn the camera. Portrait and landscape both work.
 - **Saves** to your browser, and the game works offline once it's loaded.
 
-Still to come from the 2D game: the mini-games (batting cages, pinball, the derby, hoops, tennis and the raceway), food and the market, the dog, fishing, rain, fireflies and festivals.
+- **Seven mini-games, each with its own little 3D set:** batting practice at The Diamond, free throws at the Siegel Center, tennis against the ball machine on Arthur Ashe Boulevard, River City Ramble pinball in the Stone House arcade, and three races: the Libby Hill soapbox derby, the Capital Trail time trial on a bike and the Richmond Raceway dash. Races give gold, silver or bronze, and your records go in the album.
+- **A dog of your own:** adopt one from the shelter volunteer in Manchester. It follows you, chases pests, sniffs out each neighborhood's hidden stash and digs up treats.
+- **Food and your row house:** buy a picnic basket and ingredients at the 17th Street Market or a box lunch at Sally Bell's, cook at the stove in your own row house in the Fan, sleep in your bed, read your mail and fill it with furniture from Carytown.
+- **Fishing, photos and a bike:** cast for five kinds of fish (the sturgeon only lives in the James), photograph 30 landmarks for your album, and ride the cyclist's old bike around town.
+- **Weather and seasons:** rain, fog and snow roll through, frogs come out in the rain for the naturalist, fireflies light up leafy parks on clear nights, and the trees follow the real calendar: blossoms in spring, orange and gold in the fall.
+- **Events:** First Friday art walks on Broad Street with a missing-paintings mystery, holiday lights in December, the Folk Festival and Riverrock on Brown's Island, and Monument Avenue 10K runners in the spring.
 
 ## Controls
 
@@ -57,6 +66,8 @@ Plain JavaScript and WebGL 2, no build step and no libraries. The scripts load i
 - `js/models.js`: low-poly people, creatures and props
 - `js/game.js`: the game itself, with no drawing in it
 - `js/talk.js`: what everyone says
+- `js/life.js`: the dog, food, fishing, photos, the bike, weather, seasons and events
+- `js/mini.js`: the mini-games and their sets
 - `js/render.js`: the PS1-style WebGL renderer
 - `js/hud.js`: hearts, dialog windows, the pause menu and the title
 - `js/input.js`, `js/audio.js`, `js/main.js`: controls, sound and the frame loop
@@ -73,4 +84,4 @@ node tools/import-2d.js ../river-city-quest
 node tests/run.js
 ```
 
-The tests load the game into Node without a screen. `playthrough.test.js` has a bot play the opening: get the lantern, walk to Belle Isle, clear the quarry, unlock the door, blow the wall, beat Old Snapper and bring the keystone home. `dungeons.test.js` checks that every door goes somewhere, every dungeon room connects to its entrance, and a bot beats all seven bosses through to the credits. `puzzles.test.js` uses each item on the puzzle it's for. `features.test.js` covers markers, all four challenges, bushes, nighttime, dying and the menu. GitHub Actions runs them on every push.
+The tests load the game into Node without a screen. `playthrough.test.js` has a bot play the opening: get the lantern, walk to Belle Isle, clear the quarry, unlock the door, blow the wall, beat Old Snapper and bring the keystone home. `dungeons.test.js` checks that every door goes somewhere, every dungeon room connects to its entrance, and a bot beats all seven bosses through to the credits. `puzzles.test.js` uses each item on the puzzle it's for. `mini.test.js` has a bot play every mini-game to the end, and `life.test.js` covers the dog, cooking, fishing, photos, the bike, stashes, weather, frogs and First Friday. `camera.test.js` walks out of every building and checks the camera can see you. `features.test.js` covers markers, all four challenges, bushes, nighttime, dying and the menu. GitHub Actions runs them on every push.

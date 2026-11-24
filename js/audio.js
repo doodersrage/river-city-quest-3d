@@ -12,7 +12,9 @@ function tone(f,d,type,vol,bus,at,slide){if(!ac)return;const t=at||ac.currentTim
 function noise(d,vol,lp,at){if(!ac)return;const t=at||ac.currentTime,n=ac.createBufferSource(),b=ac.createBuffer(1,ac.sampleRate*d,ac.sampleRate),x=b.getChannelData(0);for(let i=0;i<x.length;i++)x[i]=Math.random()*2-1;n.buffer=b;
   const f=ac.createBiquadFilter();f.type='lowpass';f.frequency.value=lp||2000;const g=ac.createGain();g.gain.setValueAtTime(vol||.2,t);g.gain.exponentialRampToValueAtTime(.001,t+d);n.connect(f);f.connect(g);g.connect(sfxBus);n.start(t);}
 function sfx(k){if(!ac)return;const t=ac.currentTime;switch(k){
-  case'blip':tone(880,.05,'square',.05);break;case'swing':noise(.12,.18,3000);tone(300,.1,'triangle',.06,null,null,150);break;
+  case'blip':tone(880,.05,'square',.05);break;case'bark':tone(620,.06,'square',.05,null,null,480);tone(560,.07,'square',.045,null,t+.1,420);break;case'snap':tone(1600,.03,'square',.04);noise(.06,.15,5000);tone(900,.06,'triangle',.04,null,t+.04);break;
+  case'bite':tone(1300,.06,'square',.05);tone(1700,.08,'square',.05,null,t+.07);break;case'reel':tone(400+Math.random()*300,.03,'square',.025);break;case'frog':tone(260,.08,'square',.05,null,null,180);tone(300,.08,'square',.04,null,t+.1,200);break;
+  case'ping':tone(900+Math.random()*400,.07,'square',.04);break;case'crack':noise(.08,.35,6000);tone(1200,.05,'square',.06,null,null,600);break;case'cheer':noise(.9,.1,2500);for(let i=0;i<4;i++)tone(700+i*120,.12,'triangle',.03,null,t+i*.07);break;case'swish':noise(.25,.12,7000);break;case'engine':tone(70+Math.random()*20,.12,'sawtooth',.02);break;case'swing':noise(.12,.18,3000);tone(300,.1,'triangle',.06,null,null,150);break;
   case'hit':tone(180,.12,'square',.12,null,null,60);noise(.08,.2,1500);break;case'poof':noise(.3,.25,900);tone(520,.25,'triangle',.06,null,null,1200);break;
   case'hurt':tone(220,.25,'sawtooth',.12,null,null,90);break;case'die':for(let i=0;i<5;i++)tone(400-i*60,.3,'triangle',.08,null,t+i*.12);break;
   case'coin':tone(988,.06,'square',.06);tone(1319,.18,'square',.06,null,t+.06);break;case'heart':tone(660,.1,'triangle',.08);tone(880,.15,'triangle',.08,null,t+.08);break;

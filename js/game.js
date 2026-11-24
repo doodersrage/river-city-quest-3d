@@ -3,10 +3,10 @@
 const CYC=36000,FPS=60,PR=.42;
 let st=null,lv=null,p=null,cam=null,mode='title',dlg=null,menu=null,trans=null,toastMsg='',toastT=0,banner='',bannerT=0,frame=0,shake=0,flash=0,endT=0;
 let birds=[],npcs=[],enemies=[],picks=[],bombs=[],parts=[],chests=[],shots=[],chal=null,boss=null,hook=null,bug=null,needSave=false,titleSel=0,deathT=0,shop=null;
-const inp={x:0,z:0,a:0,b:0,item:0,menu:0,camX:0,up:0,down:0,left:0,right:0,start:0};
+const inp={x:0,z:0,a:0,b:0,ah:0,bh:0,item:0,menu:0,camX:0,up:0,down:0,left:0,right:0,start:0};
 const KEYS4=['granite','iron','brick','bronze'],KEYNAME={granite:'Granite',iron:'Iron',brick:'Brick',bronze:'Bronze'};
-const ITEMORDER=['lantern','balls','powder','bug','shoes','hook','can','bottle'];
-const ITEMNAME={lantern:'Gas Lantern',balls:'Baseballs',powder:'Blasting Powder',bug:'Gold-Bug',shoes:'Running Shoes',hook:'Grappling Hook',can:'Watering Can',bottle:'Ginger Beer'};
+const ITEMORDER=['lantern','balls','powder','bug','shoes','hook','can','bottle','rod','camera','basket','bike'];
+const ITEMNAME={lantern:'Gas Lantern',balls:'Baseballs',powder:'Blasting Powder',bug:'Gold-Bug',shoes:'Running Shoes',hook:'Grappling Hook',can:'Watering Can',bottle:'Ginger Beer',rod:'Fishing Rod',camera:'Camera',basket:'Picnic Basket',bike:'Bicycle'};
 const TRADE={melon:'Watermelon',music:'Sheet Music',rivermap:'River Map'};
 function newState(){return{coins:0,hp:6,max:6,items:{},ammo:{balls:0,powder:0},cap:{balls:30,powder:10},eq:null,keys:{},got:{},f:{},lore:{},pins:{},vis:{},
   scene:'ow:2,1',x:15*TS+TS/2,z:9*TS+TS/2,clock:2400,time:0,ret:null,bottle:0,shield:0,trade:null,pieces:0,nightKills:0};}
@@ -61,7 +61,7 @@ function loadScene(id,x,z,yaw){
   p.x=x;p.z=z;if(yaw!=null)p.yaw=yaw;p.vx=p.vz=0;p.dash=0;settle();
   cam.yaw=lv.room?0:bestYaw(p.yaw+Math.PI);cam.snap=true;cam.manual=0;
   if(chal&&chal.scene!=id){chalClear();chal=null;toast('Challenge abandoned.');}
-  banner=lv.name;bannerT=150;needSave=true;
+  banner=lv.name;bannerT=150;needSave=true;if(typeof lifeOnLoad=='function')lifeOnLoad(id);
   if(typeof onSceneLoaded=='function')onSceneLoaded();}
 function freeSpot(minD){for(let k=0;k<80;k++){const tx=1+Math.floor(Math.random()*(lv.w-2)),tz=1+Math.floor(Math.random()*(lv.h-2));const x=tx*TS+TS/2,z=tz*TS+TS/2;
   if(walkable(tileAt(lv,tx,tz))&&Math.hypot(x-p.x,z-p.z)>minD)return[x,z];}return null;}
@@ -92,17 +92,19 @@ function dlgUpdate(){const d=dlg,L=d.lines[d.i];d.n=Math.min(L.length,d.n+2);con
 function update(){frame++;
   if(toastT>0)toastT--;if(bannerT>0)bannerT--;if(shake>0)shake--;if(flash>0)flash--;
   if(mode=='title'){titleUpdate();return;}
+  if(mode=='mini'){if(typeof miniUpdate=='function')miniUpdate();return;}
   if(mode=='end'||mode=='credits'){endT++;if(endT>(mode=='end'?90:240)&&(inp.a||inp.start))mode='play';return;}
   if(trans){transUpdate();return;}
   if(dlg){dlgUpdate();camUpdate();return;}
   if(shop){shopUpdate();return;}
   if(menu){menuUpdate();return;}
   if(deathT>0){if(--deathT==0){if(chal){chalClear();chal=null;}p.hp=st.max;st.hp=st.max;const s=st.spawn||[st.scene,p.x,p.z];loadScene(s[0],s[1],s[2]);toast('You catch your breath.');}return;}
+  if(typeof fish!='undefined'&&fish){st.clock++;st.time++;fishUpdate();npcUpdate();if(typeof lifeUpdate=='function')lifeUpdate();camUpdate();return;}
   if(inp.menu||inp.start){const own=ownItems();menu={tab:0,sel:0,jc:0,rd:null,ic:Math.max(0,own.indexOf(st.eq)),bi:0};sfx('blip');return;}
   st.clock++;st.time++;if(p.inv>0)p.inv--;if(p.hold>0)p.hold--;
   if(chal&&chal.t!=null&&--chal.t<=0)chalFail();
   playerUpdate();if(hook)hookUpdate();if(bug)bugUpdate();blocksUpdate();
-  enemiesUpdate();shotsUpdate();npcUpdate();birdsUpdate();picksUpdate();bombsUpdate();partsUpdate();camUpdate();
+  enemiesUpdate();shotsUpdate();npcUpdate();birdsUpdate();picksUpdate();bombsUpdate();partsUpdate();if(typeof lifeUpdate=='function')lifeUpdate();camUpdate();
   if(needSave&&frame%30==0){saveGame();needSave=false;}}
 
 function playerUpdate(){
@@ -111,7 +113,7 @@ function playerUpdate(){
   const cy=cam.yaw,fx=-Math.sin(cy),fz=-Math.cos(cy),rx=Math.cos(cy),rz=-Math.sin(cy);
   let mx=inp.x*rx+(-inp.z)*fx,mz=inp.x*rz+(-inp.z)*fz;const ml=Math.hypot(mx,mz);
   const onRiver=tAt(p.x,p.z)=='~';
-  let sp=(p.swing>0?.035:onRiver?.08:.095)*TS;p.moving=ml>.15||p.dash>0;
+  let sp=(p.swing>0?.035:onRiver?.08:.095)*TS;p.moving=ml>.15||p.dash>0;if(typeof lifeSpeed=='function')sp*=lifeSpeed();
   if(p.dash>0){p.dash--;const f=fwd(p.yaw);mx=f[0];mz=f[1];sp=.24*TS;
     for(const e of enemies)if(!e.dead&&!e.boss&&Math.hypot(e.x-p.x,e.z-p.z)<1.2)hitEnemy(e,1,f[0],f[1],'dash');}
   else if(p.moving){mx/=Math.max(1,ml);mz/=Math.max(1,ml);p.yaw+=ang(p.yaw,Math.atan2(mx,mz))*.35;p.walk+=ml*.22;}
@@ -137,6 +139,7 @@ function npcInFront(){let best=null,bd=1e9;for(const n of npcs){const d=Math.hyp
 function counterBetween(n){return tAt((n.x+p.x)/2,(n.z+p.z)/2)=='V';}
 function interact(){
   const best=npcInFront();if(best){best.yaw=Math.atan2(p.x-best.x,p.z-best.z);best.look=180;talkTo(best);return true;}
+  if(typeof lifeInteract=='function'&&lifeInteract())return true;
   for(const d of [1.2,2]){const [fx,fz]=front(d),[tx,tz]=tileXZ(fx,fz),c=tileAt(lv,tx,tz),k=tx+','+tz;
     const ch=chests.find(q=>q.tx==tx&&q.ty==tz);
     if(ch&&!ch.open&&chestVisible(ch)){openChest(ch);return true;}
@@ -172,7 +175,7 @@ function enterDoor(tx,tz){const dr=(lv.doors||[]).find(d=>d.tx==tx&&d.ty==tz);if
 let later=[];
 
 /* ---------- reading the city ---------- */
-function readMarker(id){if(id[0]=='!'){const x=RCQ.readx[id];if(x)say([id=='!arcade'?'A pinball machine called RIVER CITY RAMBLE. Its 3D cabinet is still being wired up.':x[1]],null,x[0]);return;}
+function readMarker(id){if(id=='!arcade'&&typeof offerPinball=='function'){offerPinball();return;}if(id[0]=='!'){const x=RCQ.readx[id];if(x)say([id=='!arcade'?'A pinball machine called RIVER CITY RAMBLE. Its 3D cabinet is still being wired up.':x[1]],null,x[0]);return;}
   const L=RCQ.lore[id];if(!L)return;sfx('blip');learn(id);say(wrapPages(L.s),null,L.t);}
 function learn(id){if(!RCQ.lore[id]||st.lore[id])return;st.lore[id]=1;needSave=true;toast('Journal: '+RCQ.lore[id].t);}
 function wrapPages(s){const words=s.split(' '),pages=[];let cur='';for(const w of words){if((cur+' '+w).trim().length>150){pages.push(cur.trim());cur=w;}else cur+=' '+w;}if(cur.trim())pages.push(cur.trim());return pages;}
@@ -202,7 +205,7 @@ function give(code){
 function ownItems(){return ITEMORDER.filter(k=>st.items[k]);}
 function itemLabel(k){return k=='balls'?'Baseballs x'+st.ammo.balls:k=='powder'?'Powder x'+st.ammo.powder:k=='bottle'?(st.bottle?'Ginger Beer':'Empty Bottle'):ITEMNAME[k]||'-';}
 function cycleItem(){const own=ownItems();if(!own.length){toast('No items yet.');return;}const i=own.indexOf(st.eq);st.eq=own[(i+1)%own.length];sfx('blip');toast(itemLabel(st.eq));}
-function useItem(){if(!st.eq){toast('Nothing on B yet.');return;}const f=fwd(p.yaw);
+function useItem(){if(!st.eq){toast('Nothing on B yet.');return;}if(typeof lifeUse=='function'&&lifeUse(st.eq))return;const f=fwd(p.yaw);
   switch(st.eq){
     case'lantern':{p.raise=40;sfx('lantern');
       const bz=lv.dyn.find(o=>o.kind=='brazier'&&!o.lit&&Math.hypot(o.tx*TS+TS/2-p.x,o.ty*TS+TS/2-p.z)<2.8);
@@ -275,7 +278,7 @@ function enemiesUpdate(){
     if(dist<d.r+.45&&p.inv==0&&p.dash==0)hurtPlayer(d.dmg,e.x,e.z);}
   enemies=enemies.filter(e=>!e.dead||e.fade>0&&e.fade--);
   if(lv.room&&lv.d.en.length&&!enemies.some(e=>!e.dead&&!e.chal)&&!st.f['clr:'+lv.id]){st.f['clr:'+lv.id]=1;needSave=true;if(lv.d.solveOf=='clear')solvedNow();}}
-function hurtPlayer(dmg,fx,fz){if(p.hold>0||hook&&hook.st=='pull')return;p.hp-=dmg;p.inv=70;const l=Math.hypot(p.x-fx,p.z-fz)||1;p.kx=(p.x-fx)/l*.35;p.kz=(p.z-fz)/l*.35;shake=8;sfx('hurt');vibrate(40);
+function hurtPlayer(dmg,fx,fz){if(p.hold>0||hook&&hook.st=='pull')return;if(typeof lifeDamage=='function')dmg=lifeDamage(dmg);p.hp-=dmg;p.inv=70;const l=Math.hypot(p.x-fx,p.z-fz)||1;p.kx=(p.x-fx)/l*.35;p.kz=(p.z-fz)/l*.35;shake=8;sfx('hurt');vibrate(40);
   if(p.hp<=0){if(st.bottle){st.bottle=0;p.hp=st.max;toast('You gulp down the ginger beer just in time!');sfx('heart');return;}p.hp=0;deathT=90;sfx('die');}}
 function swingHits(){
   for(const e of enemies){if(e.dead||e.flash>0)continue;const dx=e.x-p.x,dz=e.z-p.z,d=Math.hypot(dx,dz),r=EDEF[e.type].r;if(d>2.1+r*.6)continue;
@@ -396,7 +399,8 @@ function collect(k){switch(k.kind){
     say(['You found the bateau '+k.id+'! ('+n+' of 3)',n<3?'The river historian at Ancarrow\'s Landing will want it.':'That\'s every part! Take them to the historian at Ancarrow\'s Landing.'],null,'Bateau Part');break;}
   case'bib':st.got.bib=1;p.hold=70;p.holdIc='bib';sfx('chest');say(['A race bib from the Monument Avenue 10K.','A runner in the Fan must be missing it.']);break;
   case'carkey':st.got.carkey=1;p.hold=70;p.holdIc='key';sfx('chest');say(['You found the Carillon Key!','Bring it to the Carillon in Byrd Park.']);break;
-  case'skey':{st.got[k.id]=1;const ar=lv.id.split(':')[0];st.keys[ar]=(st.keys[ar]||0)+1;p.hold=60;p.holdIc='key';sfx('chest');say(['The Gold-Bug brought back a small key!']);break;}}
+  case'skey':{st.got[k.id]=1;const ar=lv.id.split(':')[0];st.keys[ar]=(st.keys[ar]||0)+1;p.hold=60;p.holdIc='key';sfx('chest');say(['The Gold-Bug brought back a small key!']);break;}
+  default:if(typeof lifeCollect=='function')lifeCollect(k);}
   needSave=true;}
 function burst(x,y,z,n,c){for(let i=0;i<n;i++){const a=Math.random()*6.283,v=.05+Math.random()*.12;parts.push({x,y,z,vx:Math.cos(a)*v,vy:.05+Math.random()*.15,vz:Math.sin(a)*v,life:30+Math.random()*20|0,c});}}
 function partsUpdate(){for(const q of parts){q.x+=q.vx;q.y+=q.vy;q.z+=q.vz;q.vy-=.008;q.life--;}parts=parts.filter(q=>q.life>0);
@@ -471,7 +475,7 @@ function bestYaw(want){let best=want,bs=-1e9;for(let k=0;k<=12;k++)for(const sgn
 function tallAt(c,y,tz){if(c=='B'||c=='e')return y<8;if('%LH'.includes(c))return y<3.2;if(c=='X'||c=='D')return y<9;if(c=='W')return y<(tz==lv.h-1?.8:4);if(c=='T')return y<3.6&&y>1;if(c=='U')return y<2.4;return false;}
 
 /* ---------- pause menu: items, journal, map (and the bus) ---------- */
-const MTABS=['ITEMS','JOURNAL','MAP','SYSTEM'];
+const MTABS=['ITEMS','JOURNAL','MAP','ALBUM','SYSTEM'];
 function busList(){return Object.keys(RCQ.maps).filter(k=>st.vis[k]).sort((a,b)=>{const [ax,ay]=a.slice(3).split(',').map(Number),[bx,by]=b.slice(3).split(',').map(Number);return ay-by||ax-bx;});}
 function menuUpdate(){const m=menu;
   if(m.rd){if(inp.a||inp.b){if(m.rd.pg<m.rd.pages.length-1)m.rd.pg++;else m.rd=null;sfx('blip');}return;}
@@ -482,7 +486,7 @@ function menuUpdate(){const m=menu;
     if(inp.a){const id=ids[m.jc];if(st.lore[id]){m.rd={t:RCQ.lore[id].t,pages:wrapPages(RCQ.lore[id].s),pg:0};sfx('blip');}else sfx('no');}if(inp.b)menu=null;}
   if(m.tab==2){const L=busList();if(!L.length)return;if(m.bi==null||m.bi>=L.length)m.bi=Math.max(0,L.indexOf(lv.id));if(inp.up)m.bi=(m.bi+L.length-1)%L.length;if(inp.down)m.bi=(m.bi+1)%L.length;
     if(inp.a){const id=L[m.bi];if(lv.room){toast('Head back outside to catch a bus.');sfx('no');}else if(id!=lv.id){const s=sceneData(id);menu=null;startTrans(id,s.w*TS/2,s.h*TS/2,0);toast('You ride the GRTC bus to '+s.name+'.');}}}
-  if(m.tab==3){if(inp.up||inp.down)m.sel=(m.sel+1)%2;if(inp.a){if(m.sel==0){saveGame();toast('Saved.');menu=null;}else{saveGame();menu=null;mode='title';titleSel=0;}}}}
+  if(m.tab==4){if(inp.up||inp.down)m.sel=(m.sel+1)%2;if(inp.a){if(m.sel==0){saveGame();toast('Saved.');menu=null;}else{saveGame();menu=null;mode='title';titleSel=0;}}}}
 function goalText(){
   if(!st.items.lantern)return'Talk to the archivist beside the Capitol.';
   if(!st.got.granite)return'Cross the footbridge south of Capitol Square to the Belle Isle quarry.';
@@ -513,7 +517,7 @@ function shopUpdate(){const S=SHOPS[shop.k],L=S.items;
   if(inp.up)shop.cur=(shop.cur+L.length-1)%L.length;if(inp.down)shop.cur=(shop.cur+1)%L.length;
   if(inp.a){const it=L[shop.cur],why=it.why();
     if(why){sfx('no');shop.msg=why=='???'?'You\'d need one of those first.':why=='FULL'?'You can\'t carry more.':why=='NO BOTTLE'?'You need a bottle for that.':'That one\'s gone.';}
-    else if(st.coins<it.price){sfx('no');shop.msg='Not enough coins.';}else{st.coins-=it.price;it.buy();sfx('coin');shop.msg='Thank you kindly!';needSave=true;}}}
+    else if(st.coins<it.price){sfx('no');shop.msg='Not enough coins.';}else{st.coins-=it.price;const r=it.buy();sfx('coin');shop.msg=typeof r=='string'?r:'Thank you kindly!';needSave=true;}}}
 
 /* ---------- title ---------- */
 function titleOpts(){return loadSave()?['CONTINUE','NEW GAME']:['NEW GAME'];}

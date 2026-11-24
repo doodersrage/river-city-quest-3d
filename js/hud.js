@@ -13,6 +13,7 @@ function heart(x,y,fill){const P=[[1,0],[2,0],[4,0],[5,0],[0,1],[1,1],[2,1],[3,1
   for(const [a,b] of P){hx.fillStyle='#1a0a10';hx.fillRect(x+a*3-1,y+b*3-1,5,5);}for(const [a,b] of P){const on=fill>=1||fill>0&&a<=3;hx.fillStyle=on?(b<2&&a<3?'#ff8a9a':'#e83048'):'#4a2a34';hx.fillRect(x+a*3,y+b*3,3,3);}}
 function drawHud(){hx.clearRect(0,0,HW,HH);
   if(mode=='title'){drawTitle();return;}
+  if(mode=='mini'){if(typeof drawMiniHud=='function')drawMiniHud();return;}
   if(!st)return;
   if(mode=='end'||mode=='credits'){mode=='end'?drawEnd():drawCredits();return;}
   // hearts, coins, item
@@ -26,6 +27,7 @@ function drawHud(){hx.clearRect(0,0,HW,HH);
   // a prompt over whoever or whatever A would use
   if(!dlg&&!menu&&!trans&&mode=='play'){const t=promptTarget();if(t){const s=project(t[0],t[1],t[2]);if(s){const x=s[0]*2,y=s[1]*2;win(x-38,y-30,76,28);T('A '+t[3],x,y-25,{align:'center',size:14,c:'#fff2a8'});}}}
   if(dlg)drawDialog();
+  if(typeof drawLifeHud=='function'&&mode=='play')drawLifeHud();
   if(menu)drawMenu();
   if(shop)drawShop();
   if(deathT>0){hx.fillStyle='rgba(60,0,10,'+Math.min(.7,(90-deathT)/60)+')';hx.fillRect(0,0,HW,HH);}}
@@ -39,7 +41,7 @@ function drawDialog(){const d=dlg,L=d.lines[d.i].slice(0,d.n),last=d.i==d.lines.
   if(last&&d.choices&&d.n>=d.lines[d.i].length)d.choices.forEach((c,i)=>{const yy=y+26+lines.length*26+i*26;if(i==d.sel){hx.fillStyle='#f2c14e';hx.beginPath();hx.moveTo(48,yy+4);hx.lineTo(60,yy+11);hx.lineTo(48,yy+18);hx.fill();}T(c,68,yy,{size:18,c:i==d.sel?'#fff2a8':'#c8d0f0'});});
   else if(d.n>=d.lines[d.i].length&&(frame>>4)&1){hx.fillStyle='#f2c14e';hx.beginPath();hx.moveTo(HW-56,y+h-26);hx.lineTo(HW-44,y+h-26);hx.lineTo(HW-50,y+h-18);hx.fill();}}
 function drawMenu(){const m=menu;hx.fillStyle='rgba(0,0,20,.45)';hx.fillRect(0,0,HW,HH);win(20,16,HW-40,HH-32);
-  MTABS.forEach((t,i)=>{const x=40+i*144;if(i==m.tab){hx.fillStyle='rgba(242,193,78,.25)';hx.fillRect(x-6,30,132,30);}T(t,x+60,36,{align:'center',size:17,c:i==m.tab?'#fff2a8':'#9aa4d8'});});
+  MTABS.forEach((t,i)=>{const x=36+i*114;if(i==m.tab){hx.fillStyle='rgba(242,193,78,.25)';hx.fillRect(x-4,30,108,30);}T(t,x+50,36,{align:'center',size:17,c:i==m.tab?'#fff2a8':'#9aa4d8'});});
   hx.fillStyle='#6a74a8';hx.fillRect(36,66,HW-72,2);
   if(m.tab==0){T('GOAL',44,84,{size:14,c:'#9aa4d8'});wrapText(goalText(),540,18).forEach((l,i)=>T(l,44,104+i*24,{size:18,c:'#fff2a8'}));
     const own=ownItems();T('ITEMS  (A: set to B)',44,150,{size:14,c:'#9aa4d8'});
@@ -62,7 +64,8 @@ function drawMenu(){const m=menu;hx.fillStyle='rgba(0,0,20,.45)';hx.fillRect(0,0
     const lx=36+(x1-x0+1)*cw+14;T('GRTC BUS',lx,78,{size:14,c:'#9aa4d8'});const top=Math.max(0,Math.min((m.bi||0)-6,L.length-13));
     for(let i=0;i<13&&top+i<L.length;i++){const id=L[top+i],y=100+i*25;if(top+i==(m.bi||0)){hx.fillStyle='rgba(242,193,78,.22)';hx.fillRect(lx-6,y-3,HW-lx-30,24);}T(RCQ.names[id].slice(0,22),lx,y,{size:15,c:top+i==(m.bi||0)?'#fff2a8':'#ffffff'});}
     T('Up/Down pick a stop, A ride the bus. The star marks your goal.',HW/2,HH-58,{align:'center',size:14,c:'#9aa4d8'});}
-  if(m.tab==3){['SAVE','SAVE AND QUIT TO TITLE'].forEach((o,i)=>T((m.sel==i?'> ':'  ')+o,80,110+i*40,{size:20,c:m.sel==i?'#fff2a8':'#c8d0f0'}));
+  if(m.tab==3&&typeof drawAlbum=='function')drawAlbum(m);
+  if(m.tab==4){['SAVE','SAVE AND QUIT TO TITLE'].forEach((o,i)=>T((m.sel==i?'> ':'  ')+o,80,110+i*40,{size:20,c:m.sel==i?'#fff2a8':'#c8d0f0'}));
     T('Time played '+fmtTime(st.time),80,220,{size:17,c:'#c8d0f0'});
     ['Move: left stick, WASD or arrows','A: talk, read, swing (J, Space)','B: use item (K, Shift)','ITEM: switch item (L, Tab)','Camera: drag, right stick, Q / E','MENU: Enter or Esc'].forEach((t,i)=>T(t,80,264+i*24,{size:15,c:'#9aa4d8'}));}
   T('< > change tab    B close',HW/2,HH-36,{align:'center',size:13,c:'#6a74a8'});}

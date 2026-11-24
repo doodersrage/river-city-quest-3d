@@ -33,7 +33,8 @@ function makeAtlas(){
     door(x,y){R(x,y,P,P,'#2a1a14');R(x+3,y+3,26,29,'#5e3a1e');R(x+5,y+5,10,12,'#4a2c14');R(x+17,y+5,10,12,'#4a2c14');R(x+5,y+19,10,12,'#4a2c14');R(x+17,y+19,10,12,'#4a2c14');R(x+24,y+18,2,2,'#f2c14e');},
     doorlit(x,y){R(x,y,P,P,'#2a1a14');R(x+3,y+3,26,29,'#14100c');R(x+5,y+8,22,24,'#f8d060');R(x+5,y+8,22,2,'#fff2a8');},
     bark(x,y){R(x,y,P,P,'#5a3e26');for(let i=0;i<P;i+=3)R(x+i,y,1,P,'#3e2a18');noise(x,y,['#6e4e30','#4a321e'],40);},
-    leaves(x,y){R(x,y,P,P,'#2f6a2e');noise(x,y,['#3e8a3a','#245426','#4e9a44','#1e4420'],260);},
+    leaves(x,y){const m=new Date().getMonth();if(m>=8&&m<=10){R(x,y,P,P,'#a8542a');noise(x,y,['#d07a2a','#8a3a1a','#e0a040','#6a3a18','#c8b040'],260);}
+      else if(m>=2&&m<=4){R(x,y,P,P,'#3a7a32');noise(x,y,['#58a046','#2f6a2e','#f8b8d0','#ffffff'],240);}else{R(x,y,P,P,'#2f6a2e');noise(x,y,['#3e8a3a','#245426','#4e9a44','#1e4420'],260);}},
     leaves2(x,y){R(x,y,P,P,'#3a7a30');noise(x,y,['#58a046','#2a5e24','#6ab052'],240);},
     rock(x,y){R(x,y,P,P,'#7a7a80');noise(x,y,['#8e8e96','#66666e','#a0a0a8','#5a5a62'],220);},
     fence(x,y){g.clearRect(x,y,P,P);R(x,y+2,P,2,'#1e1c24');R(x,y+24,P,2,'#1e1c24');for(let i=1;i<P;i+=5){R(x+i,y,2,P,'#1e1c24');R(x+i,y,2,2,'#5a5662');}},

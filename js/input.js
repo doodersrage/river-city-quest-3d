@@ -21,6 +21,7 @@ function readInput(){
   if(touch.stick){x=touch.sx;z=touch.sz;const l=Math.hypot(x,z);if(l>.3&&!touch.dirHeld){const ad=Math.abs(x)>Math.abs(z);if(ad)(x>0?right=1:left=1);else(z>0?down=1:up=1);touch.dirHeld=1;}if(l<.3)touch.dirHeld=0;}
   if(touch.cam){camX=-touch.camDX*.12;touch.camDX*=.5;}
   const B=touch.btn,fb=k=>B[k]&&!prevBtn[k];a=a||fb('a');b=b||fb('b');item=item||fb('item');men=men||fb('menu');prevBtn={...B};
+  const gpd=gp?gp.buttons:null;inp.ah=held('KeyJ','Space','KeyZ')||!!(gpd&&gpd[0]&&gpd[0].pressed)||!!B.a;inp.bh=held('KeyK','ShiftLeft','ShiftRight','KeyX')||!!(gpd&&(gpd[1]&&gpd[1].pressed||gpd[2]&&gpd[2].pressed))||!!B.b;
   Object.assign(inp,{x:Math.max(-1,Math.min(1,x)),z:Math.max(-1,Math.min(1,z)),a:a?1:0,b:b?1:0,item:item?1:0,menu:men?1:0,start:0,up:up?1:0,down:down?1:0,left:left?1:0,right:right?1:0,camX});
   for(const k in keys)if(keys[k]==2)keys[k]=1;}
 function initTouch(){const stickEl=document.getElementById('stick'),knob=document.getElementById('knob'),camEl=document.getElementById('camzone');
